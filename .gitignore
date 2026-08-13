@@ -83,6 +83,9 @@ web_modules/
 .cache
 .parcel-cache
 
+# Vercel build output (never commit — Vercel will serve this instead of rebuilding)
+.vercel
+
 # Next.js build output
 .next
 out
