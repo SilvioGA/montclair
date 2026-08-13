@@ -1,0 +1,52 @@
+---
+import { smallestSize, worldLabel, type Perfume } from "../data/catalog";
+import { money } from "../lib/money";
+import { perfumePayload } from "../lib/payload";
+
+interface Props {
+  perfume: Perfume;
+  withAdd?: boolean;
+}
+
+const { perfume, withAdd = true } = Astro.props;
+const start = smallestSize(perfume);
+const payload = JSON.stringify(perfumePayload(perfume));
+---
+
+<article
+  class="flex flex-col gap-2"
+  data-gender={perfume.gender}
+  data-world={perfume.world}
+  data-moods={perfume.moods.join(",")}
+>
+  <a href={`/perfume/${perfume.slug}`} class="relative block overflow-hidden rounded-lg bg-lift">
+    <img src={perfume.image} alt={`${perfume.house} ${perfume.name}`} class="h-[168px] w-full object-cover" />
+    {
+      !perfume.available && (
+        <span class="absolute left-2 top-2 rounded-full bg-[#c43b3b] px-2 py-0.5 font-micro text-[10px] font-semibold text-cream">
+          Agotado
+        </span>
+      )
+    }
+  </a>
+  <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-amber">{perfume.house.toUpperCase()}</p>
+  <a href={`/perfume/${perfume.slug}`} class="font-poster text-xl leading-none text-cream">{perfume.name}</a>
+  <div class="flex items-center justify-between gap-2">
+    <p class="font-app text-xs text-mist">{start.label} · {money(start.price)}</p>
+    <p class="font-micro text-[10px] text-mist">{worldLabel[perfume.world]}</p>
+  </div>
+  {
+    withAdd &&
+      (perfume.available ? (
+        <button
+          type="button"
+          data-open-sheet={payload}
+          class="mt-1 rounded-md bg-amber px-2.5 py-1.5 font-micro text-[11px] font-semibold text-night"
+        >
+          Sumar
+        </button>
+      ) : (
+        <p class="mt-1 font-micro text-[11px] text-mist">Hoy no hay</p>
+      ))
+  }
+</article>

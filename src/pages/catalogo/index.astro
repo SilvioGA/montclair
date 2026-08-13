@@ -1,0 +1,80 @@
+---
+import App from "../../layouts/App.astro";
+import PerfumeCard from "../../components/PerfumeCard.astro";
+import WhoBar from "../../components/WhoBar.astro";
+import { collections, filterPerfumes, type Gender } from "../../data/catalog";
+import { store } from "../../data/config";
+
+const para = (Astro.url.searchParams.get("para") as Gender | null) ?? "ambos";
+const q = Astro.url.searchParams.get("q") ?? "";
+const list = filterPerfumes({ q });
+
+const whoLine =
+  para === "el" ? "Lo que más piden ellos" : para === "ella" ? "Lo que más piden ellas" : "Lo que más piden";
+---
+
+<App title="Catálogo" active="catalogo">
+  <div class="px-5 pt-5 pb-4">
+    <header class="mb-4 flex items-end justify-between">
+      <h1 class="font-poster text-[26px] tracking-[-0.04em] text-cream">Catálogo</h1>
+      <p class="font-app text-[13px] text-mist"><span data-catalog-count>{list.length}</span> originales</p>
+    </header>
+
+    <label class="flex items-center gap-2 rounded-lg bg-lift px-3.5 py-3">
+      <svg class="h-4 w-4 text-mist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input
+        data-search="/catalogo"
+        type="search"
+        value={q}
+        placeholder="Busca un nombre…"
+        class="w-full bg-transparent font-app text-sm outline-none"
+      />
+    </label>
+
+    <div class="mt-4">
+      <WhoBar para={para} base={`/catalogo${q ? `?q=${encodeURIComponent(q)}` : ""}`} />
+    </div>
+
+    <div class="mt-5 flex items-end justify-between">
+      <p class="font-micro text-[11px] font-semibold tracking-[0.12em] text-amber">COLECCIONES</p>
+      <p class="font-app text-xs text-mist">entra a una</p>
+    </div>
+    <div data-stagger class="mt-3 flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {
+        collections.map((col) => (
+          <a href={col.href} class="relative h-[150px] w-[102px] shrink-0 overflow-hidden rounded-lg bg-lift">
+            <img
+              src={`https://images.unsplash.com/${
+                col.slug === "arabes"
+                  ? "photo-1578662996442-48f60103fc96"
+                  : col.slug === "nicho"
+                    ? "photo-1594035910387-fea47794261f"
+                    : col.slug === "diseno"
+                      ? "photo-1541643600914-78b084683601"
+                      : col.slug === "noche"
+                        ? "photo-1514933651103-005eec06c04b"
+                        : col.slug === "dulce"
+                          ? "photo-1514362545857-3bc16c4c7d1b"
+                          : col.slug === "fresco"
+                            ? "photo-1497366216548-37526070297c"
+                            : "photo-1497366811353-6870744d04b2"
+              }?auto=format&fit=crop&w=400&q=70`}
+              alt={col.name}
+              class="h-full w-full object-cover"
+            />
+            <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-night to-transparent"></div>
+            <p class="absolute bottom-3 left-2.5 font-poster text-[18px] uppercase text-cream">{col.name}</p>
+          </a>
+        ))
+      }
+    </div>
+
+    <p class="mt-5 font-app text-[13px] text-mist">Decants 3, 5 y 10 ml. {store.shippingNote}</p>
+
+    <p class="mt-6 font-micro text-[11px] font-semibold tracking-[0.12em] text-amber">AHORA MISMO</p>
+    <h2 data-who-line class="font-poster text-[22px] text-cream">{whoLine}</h2>
+    <div data-stagger class="mt-3 grid grid-cols-2 gap-3">
+      {list.map((perfume) => <PerfumeCard perfume={perfume} />)}
+    </div>
+  </div>
+</App>

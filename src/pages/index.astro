@@ -1,0 +1,66 @@
+---
+import App from "../layouts/App.astro";
+import BrandLockup from "../components/BrandLockup.astro";
+import PerfumeCard from "../components/PerfumeCard.astro";
+import { combos, comboTotal, getPerfume } from "../data/catalog";
+import { store } from "../data/config";
+import { money } from "../lib/money";
+
+const featured = ["le-beau-le-parfum", "eros-edp", "212-men-edt", "le-male-elixir"]
+  .map((slug) => getPerfume(slug))
+  .filter((p) => p !== undefined);
+const ready = combos.filter((c) => c.slug === "noche" || c.slug === "todo-el-dia");
+const wa = `https://wa.me/${store.whatsapp}`;
+---
+
+<App title="Inicio" active="inicio">
+  <div class="px-5 pt-5 pb-4">
+    <header class="mb-6 flex items-center justify-between">
+      <BrandLockup />
+      <a href={wa} class="flex items-center gap-1.5 rounded-full bg-amber px-3 py-2 font-micro text-xs font-semibold text-night">
+        Chat
+      </a>
+    </header>
+
+    <p class="font-micro text-[11px] font-semibold tracking-[0.28em] text-amber">PARFUMS</p>
+    <h1 class="mt-2 font-poster text-[42px] leading-[0.95] text-cream">Prueba el perfume<br />antes del frasco.</h1>
+    <p class="mt-3 max-w-[20rem] font-app text-[15px] leading-snug text-mist">
+      El mismo jugo, en 3, 5 o 10 ml. Salimos de {store.city}. Si ya lo conoces, te llevas el grande.
+    </p>
+    <p class="mt-2 font-app text-[13px] text-mist">{store.shippingNote}</p>
+
+    <a href="/catalogo" class="mt-5 flex h-[54px] items-center justify-center rounded-lg bg-amber font-micro text-[15px] font-semibold text-night">
+      Ver el catálogo
+    </a>
+
+    <div class="mt-8 flex items-end justify-between">
+      <div>
+        <p class="font-micro text-[11px] font-semibold tracking-[0.12em] text-amber">LOS MÁS PEDIDOS</p>
+        <h2 class="font-poster text-[22px] text-cream">Empieza por uno</h2>
+      </div>
+      <a href="/catalogo" class="font-micro text-xs font-semibold text-mist">Ver todos</a>
+    </div>
+    <div data-stagger class="mt-3 grid grid-cols-2 gap-3">
+      {featured.map((perfume) => <PerfumeCard perfume={perfume} />)}
+    </div>
+
+    <div class="mt-8 flex items-end justify-between">
+      <div>
+        <p class="font-micro text-[11px] font-semibold tracking-[0.12em] text-mist">SI NO QUIERES ELEGIR</p>
+        <h2 class="font-poster text-[20px] text-cream">Combos listos</h2>
+      </div>
+      <a href="/combos" class="font-micro text-xs font-semibold text-mist">Ver combos</a>
+    </div>
+    <div data-stagger class="mt-3 grid grid-cols-2 gap-3">
+      {
+        ready.map((combo) => (
+          <a href={`/combos/${combo.slug}`} class="flex flex-col gap-1.5">
+            <img src={combo.image} alt={combo.name} class="h-[110px] w-full rounded-lg object-cover bg-lift" />
+            <p class="font-poster text-lg uppercase text-cream">{combo.name}</p>
+            <p class="font-app text-xs text-amber">{money(comboTotal(combo))}</p>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</App>

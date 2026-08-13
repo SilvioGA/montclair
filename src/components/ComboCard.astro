@@ -1,0 +1,30 @@
+---
+import { comboTotal, getPerfume, type Combo } from "../data/catalog";
+import { money } from "../lib/money";
+
+interface Props {
+  combo: Combo;
+}
+
+const { combo } = Astro.props;
+const names = combo.items
+  .map((i) => getPerfume(i.slug)?.name)
+  .filter(Boolean)
+  .join(" · ");
+const total = comboTotal(combo);
+---
+
+<a
+  href={`/combos/${combo.slug}`}
+  class="flex flex-col gap-2"
+  data-combo-card
+  data-combo-gender={combo.gender}
+  data-combo-moods={combo.moods.join(",")}
+>
+  <div class="overflow-hidden rounded-lg bg-lift">
+    <img src={combo.image} alt={combo.name} class="h-[150px] w-full object-cover" />
+  </div>
+  <p class="font-poster text-xl uppercase leading-none text-cream">{combo.name}</p>
+  <p class="font-app text-[11px] leading-snug text-mist">{names}</p>
+  <p class="font-poster text-lg text-amber">{money(total)}</p>
+</a>

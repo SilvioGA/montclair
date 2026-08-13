@@ -1,0 +1,34 @@
+---
+interface Props {
+  para: string;
+  base?: string;
+}
+
+const { para } = Astro.props;
+const options = [
+  { id: "ambos", label: "Los dos" },
+  { id: "el", label: "Él" },
+  { id: "ella", label: "Ella" },
+];
+
+---
+
+<div class="flex h-12 gap-1 rounded-[10px] bg-lift p-1" data-who-bar>
+  {
+    options.map((opt) => {
+      const on = para === opt.id || (opt.id === "ambos" && (para === "ambos" || para === "todos" || !para));
+      return (
+        <button
+          type="button"
+          data-filter-para={opt.id}
+          class:list={[
+            "flex h-full flex-1 items-center justify-center rounded-lg font-poster text-base",
+            on ? "bg-amber text-night" : "text-mist",
+          ]}
+        >
+          {opt.label}
+        </button>
+      );
+    })
+  }
+</div>

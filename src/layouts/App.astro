@@ -1,0 +1,47 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/global.css";
+import TabBar from "../components/TabBar.astro";
+import SizeSheet from "../components/SizeSheet.astro";
+import PlayBar from "../components/PlayBar.astro";
+
+interface Props {
+  title?: string;
+  active: "inicio" | "combos" | "catalogo" | "carrito";
+}
+
+const { title = "GR Decants", active } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0D0D0D" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/jpeg" href="/brand/logo-source.jpg" />
+    <link rel="apple-touch-icon" href="/brand/icon.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title} · GR Decants Parfums</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="app-shell flex min-h-dvh flex-col">
+      <main data-app-main class="flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+        <slot />
+      </main>
+      <div class="fixed bottom-0 left-1/2 z-30 w-full max-w-[430px] -translate-x-1/2">
+        <PlayBar />
+        <TabBar active={active} />
+      </div>
+    </div>
+    <SizeSheet />
+    <script src="../scripts/app.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "cata",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.5",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.2",
+    "motion": "^13.1.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

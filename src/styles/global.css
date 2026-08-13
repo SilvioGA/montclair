@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night: #0d0d0d;
+  --color-lift: #161616;
+  --color-cream: #f3f1ec;
+  --color-amber: #c9b37a;
+  --color-mist: #9a9690;
+  --color-hair: #2a2a2a;
+  --font-poster: "Outfit", sans-serif;
+  --font-app: "Outfit", sans-serif;
+  --font-micro: "Outfit", sans-serif;
+}
+
+html,
+body {
+  background: #0d0d0d;
+  color: #f3f1ec;
+  font-family: var(--font-app);
+  min-height: 100dvh;
+}
+
+body {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+::selection {
+  background: #c9b37a;
+  color: #0d0d0d;
+}
+
+.font-poster {
+  font-family: var(--font-poster);
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.font-micro {
+  font-family: var(--font-micro);
+}
+
+.app-shell {
+  width: min(100%, 430px);
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #0d0d0d;
+  position: relative;
+}
+
+@media (min-width: 480px) {
+  body {
+    background:
+      radial-gradient(80% 40% at 50% 0%, #2a2418 0%, transparent 60%),
+      #070707;
+  }
+  .app-shell {
+    box-shadow: 0 0 0 1px #2e2620, 0 30px 80px #00000088;
+    min-height: 100dvh;
+  }
+}
+
+.tab-blur {
+  background: #1c1612cc;
+  backdrop-filter: blur(18px);
+}
+
+.sheet-dim {
+  background: #0d0d0dcc;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+input::placeholder {
+  color: #a89888;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal],
+  [data-who-bar],
+  [data-stagger] > *,
+  [data-combo-card] {
+    opacity: 0;
+  }
+
+  button,
+  a {
+    transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  button:active,
+  a:active {
+    transform: scale(0.98);
+  }
+}

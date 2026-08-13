@@ -1,0 +1,66 @@
+---
+interface Props {
+  active: "inicio" | "combos" | "catalogo" | "carrito";
+}
+
+const { active } = Astro.props;
+
+const tabs = [
+  {
+    id: "inicio",
+    href: "/",
+    label: "Inicio",
+    icon: `<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/>`,
+  },
+  {
+    id: "catalogo",
+    href: "/catalogo",
+    label: "Catálogo",
+    icon: `<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>`,
+  },
+  {
+    id: "combos",
+    href: "/combos",
+    label: "Combos",
+    icon: `<rect x="4" y="5" width="16" height="4" rx="1"/><rect x="4" y="11" width="16" height="4" rx="1"/><rect x="4" y="17" width="16" height="3" rx="1"/>`,
+  },
+  {
+    id: "carrito",
+    href: "/carrito",
+    label: "Carrito",
+    icon: `<path d="M5 7h15l-1.2 9.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.7L5 7Zm3-3h8M9 20h.01M17 20h.01"/>`,
+  },
+] as const;
+---
+
+<nav class="border-t border-hair bg-night pb-[env(safe-area-inset-bottom)]">
+  <div class="flex h-14">
+    {
+      tabs.map((tab) => {
+        const on = tab.id === active;
+        return (
+          <a
+            href={tab.href}
+            {...(tab.id === "carrito" ? { "data-cart-target": "" } : {})}
+            class:list={[
+              "relative flex flex-1 flex-col items-center justify-center gap-0.5",
+              on ? "text-amber" : "text-mist",
+            ]}
+          >
+            {on && <span class="absolute inset-x-6 top-0 h-0.5 bg-amber"></span>}
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={tab.icon} />
+            <span class="font-micro text-[10px]">{tab.label}</span>
+            {tab.id === "carrito" && (
+              <span
+                data-cart-badge
+                class="absolute top-1.5 right-[22%] hidden min-w-4 scale-100 rounded-full bg-amber px-1 text-center font-micro text-[9px] font-semibold text-night transition-transform duration-200"
+              >
+                0
+              </span>
+            )}
+          </a>
+        );
+      })
+    }
+  </div>
+</nav>

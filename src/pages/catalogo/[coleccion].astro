@@ -1,0 +1,138 @@
+---
+import App from "../../layouts/App.astro";
+import WhoBar from "../../components/WhoBar.astro";
+import { collections, filterPerfumes, type Gender } from "../../data/catalog";
+import { money } from "../../lib/money";
+import { perfumePayload } from "../../lib/payload";
+import { store } from "../../data/config";
+
+export function getStaticPaths() {
+  return collections.filter((c) => c.slug !== "combos").map((c) => ({ params: { coleccion: c.slug } }));
+}
+
+const { coleccion } = Astro.params;
+const col = collections.find((c) => c.slug === coleccion);
+if (!col || col.kind === "link") return Astro.redirect("/catalogo");
+
+const para = (Astro.url.searchParams.get("para") as Gender | null) ?? "ambos";
+const list = filterPerfumes({
+  world: col.kind === "world" ? col.world : undefined,
+  mood: col.kind === "mood" ? col.mood : undefined,
+});
+
+const intro: Record<string, string> = {
+  arabes: "Dulces, densos, se quedan en la piel. Si te gusta Baccarat, empiezas aquí.",
+  nicho: "Casas chicas, jugo caro. Para oler distinto.",
+  diseno: "Los que todo el mundo conoce. Seguros para regalar.",
+  noche: "Se quedan. Para salir, no para la oficina.",
+  dulce: "Vainilla, dátil, azúcar. Si te gusta lo denso.",
+  fresco: "Limpios, de día. No aturden.",
+  oficina: "Cortos y educados. Nadie se queja en el ascensor.",
+};
+---
+
+<App title={col.name} active="catalogo">
+  <div>
+    <div class="flex h-[52px] items-center justify-between px-5">
+      <a href="/catalogo" data-back class="text-cream" aria-label="Volver">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6 9 12l6 6"/></svg>
+      </a>
+      <p class="font-poster text-base tracking-wide text-mist">CATALOGO</p>
+      <a href={`/catalogo?q=`} class="text-cream" aria-label="Buscar">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </a>
+    </div>
+
+    <div class="relative h-[200px] overflow-hidden bg-lift">
+      <img
+        src={`https://images.unsplash.com/${
+          col.slug === "arabes"
+            ? "photo-1578662996442-48f60103fc96"
+            : col.slug === "nicho"
+              ? "photo-1594035910387-fea47794261f"
+              : col.slug === "diseno"
+                ? "photo-1541643600914-78b084683601"
+                : col.slug === "noche"
+                  ? "photo-1514933651103-005eec06c04b"
+                  : col.slug === "dulce"
+                    ? "photo-1514362545857-3bc16c4c7d1b"
+                    : col.slug === "fresco"
+                      ? "photo-1497366216548-37526070297c"
+                      : "photo-1497366811353-6870744d04b2"
+        }?auto=format&fit=crop&w=900&q=80`}
+        alt={col.name}
+        class="h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent"></div>
+      <h1 class="absolute bottom-4 left-5 font-poster text-5xl uppercase text-cream">{col.name}</h1>
+    </div>
+
+    <div class="px-5 pt-3 pb-6">
+      <p class="font-app text-[15px] text-mist">{intro[col.slug]}</p>
+      <div class="mt-4">
+        <WhoBar para={para} base={`/catalogo/${col.slug}`} />
+      </div>
+
+      {
+        list.length === 0 && (
+          <div class="mt-8 rounded-xl bg-lift px-4 py-5">
+            <p class="font-poster text-2xl text-cream">Aún no están aquí</p>
+            <p class="mt-2 font-app text-sm text-mist">
+              Este grupo todavía no está en la web. Escríbenos y te decimos qué hay.
+            </p>
+            <a
+              href={`https://wa.me/${store.whatsapp}`}
+              class="mt-4 flex h-12 items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night"
+            >
+              Preguntar por WhatsApp
+            </a>
+          </div>
+        )
+      }
+
+      <ul class="mt-5 flex flex-col gap-3.5">
+        {
+          list.map((p) => {
+            const start = p.sizes.find((s) => s.key === "3") ?? p.sizes[0];
+            return (
+              <li class="flex items-center gap-3" data-gender={p.gender}>
+                <a href={`/perfume/${p.slug}`} class="relative shrink-0">
+                  <img src={p.image} alt={p.name} class="h-20 w-16 rounded-md object-cover bg-lift" />
+                  {
+                    !p.available && (
+                      <span class="absolute left-1 top-1 rounded-full bg-[#c43b3b] px-1.5 py-px font-micro text-[8px] font-semibold text-cream">
+                        Agotado
+                      </span>
+                    )
+                  }
+                </a>
+                <a href={`/perfume/${p.slug}`} class="min-w-0 flex-1">
+                  <p class="font-micro text-[10px] font-semibold tracking-[0.1em] text-amber">{p.house.toUpperCase()}</p>
+                  <p class="font-poster text-xl text-cream">{p.name}</p>
+                  <p class="font-app text-[13px] text-mist">{p.smell.split(".")[0]}</p>
+                </a>
+                <div class="flex flex-col items-end gap-1.5">
+                  <p class="text-right font-poster text-[18px] leading-tight text-cream">
+                    <span class="block font-app text-[11px] text-mist">{start.label}</span>
+                    {money(start.price)}
+                  </p>
+                  {p.available ? (
+                    <button
+                      type="button"
+                      data-open-sheet={JSON.stringify(perfumePayload(p))}
+                      class="rounded-md bg-amber px-2.5 py-1.5 font-micro text-[11px] font-semibold text-night"
+                    >
+                      Sumar
+                    </button>
+                  ) : (
+                    <span class="font-micro text-[11px] text-mist">Hoy no</span>
+                  )}
+                </div>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+  </div>
+</App>

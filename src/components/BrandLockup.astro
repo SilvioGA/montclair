@@ -1,0 +1,18 @@
+---
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<a href="/" class="flex items-center gap-2.5 min-w-0">
+  <img
+    src="/brand/logo-source.jpg"
+    alt="GR Decants Parfums"
+    class:list={["shrink-0 rounded-full object-cover", compact ? "h-9 w-9" : "h-11 w-11"]}
+  />
+  <span class="min-w-0 leading-none">
+    <span class="block font-poster text-[17px] tracking-[-0.04em] text-cream">grdecants</span>
+    <span class="mt-0.5 block font-micro text-[9px] font-semibold tracking-[0.28em] text-amber">PARFUMS</span>
+  </span>
+</a>
