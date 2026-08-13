@@ -338,6 +338,7 @@ function applyGenderFilter(para: string) {
   if (para === "ambos") url.searchParams.delete("para");
   else url.searchParams.set("para", para);
   history.replaceState(null, "", url.pathname + url.search);
+  rememberBrowse();
   applyComboFilters();
 }
 
@@ -382,6 +383,28 @@ function isListPath(path: string) {
   return p === "/catalogo" || p.startsWith("/catalogo/") || p === "/combos";
 }
 
+function isBrowsePath(path: string) {
+  const p = path.replace(/\/$/, "") || "/";
+  return p === "/" || isListPath(p);
+}
+
+const BROWSE_KEY = "gr-browse";
+
+function rememberBrowse() {
+  if (!isBrowsePath(location.pathname)) return;
+  sessionStorage.setItem(BROWSE_KEY, location.pathname + location.search);
+}
+
+function lastBrowse(fallback = "/catalogo") {
+  return sessionStorage.getItem(BROWSE_KEY) || fallback;
+}
+
+function paintBackLinks() {
+  document.querySelectorAll<HTMLAnchorElement>("a[data-back-list]").forEach((a) => {
+    a.setAttribute("href", lastBrowse(a.getAttribute("href") || "/catalogo"));
+  });
+}
+
 function scrollKey(path = location.pathname) {
   return "gr-scroll:" + (path.replace(/\/$/, "") || "/");
 }
@@ -407,15 +430,6 @@ document.addEventListener("astro:before-preparation", saveListScroll);
 
 document.addEventListener("click", (e) => {
   const t = e.target as HTMLElement;
-
-  const back = t.closest<HTMLElement>("[data-back]");
-  if (back) {
-    e.preventDefault();
-    saveListScroll();
-    if (window.history.length > 1) history.back();
-    else window.location.assign(back.getAttribute("href") || "/catalogo");
-    return;
-  }
 
   if (isListPath(location.pathname)) saveListScroll();
 
@@ -601,6 +615,8 @@ const onReady = () => {
   setCartStep("summary");
   applyGenderFilter(currentGender());
   applyComboFilters();
+  rememberBrowse();
+  paintBackLinks();
   revealPage();
   restoreListScroll();
 };
