@@ -405,19 +405,47 @@ function paintBackLinks() {
   });
 }
 
-function scrollKey(path = location.pathname) {
-  return "gr-scroll:" + (path.replace(/\/$/, "") || "/");
+function normPath(path: string) {
+  return path.replace(/\/$/, "") || "/";
 }
+
+function isDetailPath(path: string) {
+  const p = normPath(path);
+  if (p.startsWith("/perfume/")) return true;
+  if (p.startsWith("/combos/") && p !== "/combos") return true;
+  return false;
+}
+
+function scrollKey(path = location.pathname) {
+  return "gr-scroll:" + normPath(path);
+}
+
+const RESTORE_KEY = "gr-restore";
 
 function saveListScroll() {
   if (!isListPath(location.pathname)) return;
   sessionStorage.setItem(scrollKey(), String(Math.round(window.scrollY)));
+  sessionStorage.setItem(RESTORE_KEY, normPath(location.pathname));
+}
+
+function forgetListScroll(path: string) {
+  sessionStorage.removeItem(scrollKey(path));
 }
 
 function restoreListScroll() {
   if (!isListPath(location.pathname)) return;
+  const here = normPath(location.pathname);
+  const marked = sessionStorage.getItem(RESTORE_KEY);
+  if (marked !== here) {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    return;
+  }
+  sessionStorage.removeItem(RESTORE_KEY);
   const raw = sessionStorage.getItem(scrollKey());
-  if (raw == null) return;
+  if (raw == null) {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    return;
+  }
   const y = Number(raw);
   const go = () => window.scrollTo({ top: y, left: 0, behavior: "instant" });
   requestAnimationFrame(go);
@@ -425,13 +453,36 @@ function restoreListScroll() {
   window.setTimeout(go, 200);
 }
 
-document.addEventListener("scroll", saveListScroll, { passive: true });
-document.addEventListener("astro:before-preparation", saveListScroll);
+function onLeaveFor(destPath: string) {
+  const from = normPath(location.pathname);
+  const dest = normPath(destPath);
+  if (from === dest) return;
+  if (isDetailPath(dest)) {
+    if (isListPath(from)) saveListScroll();
+    return;
+  }
+  const marked = sessionStorage.getItem(RESTORE_KEY);
+  if (marked && marked !== dest) forgetListScroll(marked);
+  if (isListPath(from)) forgetListScroll(from);
+  sessionStorage.removeItem(RESTORE_KEY);
+}
+
+document.addEventListener("astro:before-preparation", (e) => {
+  const to = "to" in e ? (e as Event & { to?: URL }).to : undefined;
+  if (to?.pathname) onLeaveFor(to.pathname);
+});
 
 document.addEventListener("click", (e) => {
   const t = e.target as HTMLElement;
-
-  if (isListPath(location.pathname)) saveListScroll();
+  const link = t.closest<HTMLAnchorElement>("a[href]");
+  if (link?.href) {
+    try {
+      const dest = new URL(link.href, location.origin);
+      if (dest.origin === location.origin) onLeaveFor(dest.pathname);
+    } catch {
+      /* ignore */
+    }
+  }
 
   const genderBtn = t.closest<HTMLElement>("[data-filter-para]");
   if (genderBtn) {
