@@ -4,6 +4,8 @@ import "../styles/global.css";
 import TabBar from "../components/TabBar.astro";
 import SizeSheet from "../components/SizeSheet.astro";
 import PlayBar from "../components/PlayBar.astro";
+import WebNav from "../components/WebNav.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 
 interface Props {
   title?: string;
@@ -53,10 +55,12 @@ const description =
   </head>
   <body>
     <div class="app-shell flex min-h-dvh flex-col">
-      <main data-app-main class="flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+      <WebNav active={active} />
+      <main data-app-main class="flex-1">
         <slot />
       </main>
-      <div class="fixed bottom-0 left-1/2 z-30 w-full max-w-[430px] -translate-x-1/2">
+      <SiteFooter />
+      <div class="fixed bottom-0 left-1/2 z-30 w-full max-w-[430px] -translate-x-1/2 md:hidden">
         <PlayBar />
         <TabBar active={active} />
       </div>

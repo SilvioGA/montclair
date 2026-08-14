@@ -36,15 +36,16 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
     data-perfume-page={JSON.stringify(payload)}
     data-selected-size="3"
   >
-    <div class="flex h-[52px] items-center justify-between px-5">
+    <div class="flex h-[52px] items-center justify-between px-5 md:mx-auto md:max-w-[1200px] md:px-8">
       <a href="/catalogo" data-back data-back-list class="text-cream" aria-label="Volver">
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6 9 12l6 6"/></svg>
       </a>
-      <p class="font-poster text-lg uppercase tracking-wide text-cream">{perfume.name}</p>
+      <p class="font-poster text-lg uppercase tracking-wide text-cream md:hidden">{perfume.name}</p>
       <span class="w-6" aria-hidden="true"></span>
     </div>
 
-    <div class="relative aspect-square overflow-hidden bg-lift">
+    <div class="md:mx-auto md:grid md:max-w-[1280px] md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-20 md:px-10 md:pt-4">
+    <div class="relative aspect-square overflow-hidden bg-lift md:min-h-[640px] md:rounded-2xl">
       <img src={perfume.image} alt={`${perfume.house} ${perfume.name}`} class="h-full w-full object-cover" />
       {
         !perfume.available && (
@@ -55,7 +56,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
       }
     </div>
 
-    <div class="px-5 pt-5">
+    <div class="px-5 pt-5 md:sticky md:top-28 md:px-0 md:pt-6">
       <div class="flex flex-wrap gap-1.5">
         {
           tags.map((t) => (
@@ -64,20 +65,20 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
         }
       </div>
       <p class="mt-3 font-micro text-[11px] font-semibold tracking-[0.14em] text-amber">{perfume.house.toUpperCase()}</p>
-      <h1 class="font-poster text-4xl text-cream">{perfume.name}</h1>
+      <h1 class="font-poster text-4xl text-cream md:text-[56px] md:leading-[0.95]">{perfume.name}</h1>
       <p class="mt-2 font-app text-[15px] text-mist">{perfume.smell}</p>
 
       {
         perfume.available ? (
           <>
             <p class="mt-5 font-app text-sm font-semibold text-cream">¿De cuánto?</p>
-            <div class="mt-2 flex gap-2">
+            <div class="mt-3 flex gap-3">
               {decants.map((s, i) => (
                 <button
                   type="button"
                   data-select-size={s.key}
                   class:list={[
-                    "flex flex-1 flex-col items-center rounded-lg px-2 py-3",
+                    "flex flex-1 flex-col items-center rounded-lg px-2 py-3.5",
                     i === 0 ? "bg-amber text-night" : "bg-lift text-cream",
                   ]}
                 >
@@ -90,11 +91,11 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
               <button
                 type="button"
                 data-select-size={bottle.key}
-                class="mt-2 flex w-full items-center justify-between rounded-lg bg-lift px-3.5 py-3.5 text-left text-cream"
+                class="mt-5 flex w-full items-center justify-between rounded-lg bg-lift px-3.5 py-3.5 text-left text-cream"
               >
                 <span>
                   <span class="block font-app text-sm font-semibold">Frasco completo</span>
-                  <span class="block font-app text-xs text-mist">Si ya lo conoces</span>
+                  <span class="block font-app text-xs opacity-70">Si ya lo conoces. Precio estimado.</span>
                 </span>
                 <span class="font-poster text-xl">{money(bottle.price)}</span>
               </button>
@@ -102,7 +103,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
             <button
               type="button"
               data-perfume-cta
-              class="mt-4 flex h-[54px] w-full items-center justify-center rounded-lg bg-amber font-micro text-[15px] font-semibold text-night"
+              class="mt-6 flex h-[54px] w-full items-center justify-center rounded-lg bg-amber font-micro text-[15px] font-semibold text-night"
             >
               Sumar 3 ml · {money(decants[0].price)}
             </button>
@@ -122,14 +123,17 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
       }
     </div>
 
-    <div class="px-5 pt-8 pb-8">
+    </div>
+
+    <div class="px-5 pt-8 pb-8 md:mx-auto md:max-w-[1280px] md:px-10 md:pt-20">
       {
         related.length > 0 && (
           <section>
             <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-amber">SI TE GUSTA ESTE</p>
-            <h2 class="mt-1 font-poster text-[24px] leading-none text-cream">Estos seguro también.</h2>
+            <h2 class="mt-1 font-poster text-[24px] leading-none text-cream md:text-[36px]">Estos seguro también.</h2>
             <p class="mt-2 font-app text-sm text-mist">Misma familia de olor. Para no llevarte uno solo y arrepentirte.</p>
-            <ul class="mt-4 flex flex-col gap-3">
+
+            <ul class="mt-4 flex flex-col gap-3 md:hidden">
               {related.map((r) => {
                 const start = r.sizes.find((s) => s.key === "5") ?? r.sizes[0];
                 return (
@@ -149,47 +153,67 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
                 );
               })}
             </ul>
+
+            <ul class="mt-8 hidden gap-8 md:grid md:grid-cols-2">
+              {related.map((r) => {
+                const start = r.sizes.find((s) => s.key === "5") ?? r.sizes[0];
+                return (
+                  <li>
+                    <a href={`/perfume/${r.slug}`} class="block">
+                      <img src={r.image} alt={r.name} class="h-56 w-full rounded-xl object-cover bg-lift" />
+                      <p class="mt-3 font-micro text-[10px] font-semibold tracking-[0.12em] text-amber">{r.house.toUpperCase()}</p>
+                      <p class="mt-1 font-poster text-2xl text-cream">{r.name}</p>
+                      <p class="mt-1 font-app text-sm text-mist">{whyPair(perfume, r)}</p>
+                      <p class="mt-2 font-poster text-sm text-amber">{start.label} · {money(start.price)}</p>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
           </section>
         )
       }
 
       {
         suggestedCombo && (
-          <section class="mt-8 rounded-2xl bg-lift p-4">
-            <p class="font-micro text-[11px] font-semibold tracking-[0.22em] text-amber">O EL PACK COMPLETO</p>
-            <h2 class="mt-2 font-poster text-[24px] leading-none text-cream">Los tres de una vez.</h2>
-            <p class="mt-2 font-app text-sm leading-snug text-mist">
-              Combo {suggestedCombo.name}: 5 ml de cada uno. Ya los oliemos juntos.
-            </p>
-            <ul class="mt-4 flex flex-col gap-2.5">
+          <section class="mt-8 rounded-2xl bg-lift p-4 md:mt-16 md:flex md:items-center md:gap-10 md:p-8">
+            <div class="md:w-56 md:shrink-0">
+              <p class="font-micro text-[11px] font-semibold tracking-[0.22em] text-amber">O EL PACK COMPLETO</p>
+              <h2 class="mt-2 font-poster text-[24px] leading-none text-cream md:text-[28px]">Los tres de una vez.</h2>
+              <p class="mt-2 font-app text-sm leading-snug text-mist">
+                Combo {suggestedCombo.name}. 5 ml de cada uno.
+              </p>
+            </div>
+
+            <ul class="mt-4 flex flex-col gap-2.5 md:mt-0 md:flex-1 md:flex-row md:gap-6">
               {comboItems.map(({ perfume: item, size }) => (
-                <li class="flex items-center gap-3">
-                  <img src={item.image} alt="" class="h-12 w-10 rounded-md object-cover bg-night" />
-                  <div class="min-w-0 flex-1">
+                <li class="flex items-center gap-3 md:flex-1 md:flex-col md:items-start">
+                  <img src={item.image} alt="" class="h-12 w-10 rounded-md object-cover bg-night md:h-28 md:w-full md:rounded-lg" />
+                  <div class="min-w-0 flex-1 md:flex-none">
                     <p class="font-poster text-base leading-none text-cream">
                       {item.name}
                       {item.slug === perfume.slug && <span class="ml-1 font-app text-[11px] text-amber">este</span>}
                     </p>
-                    <p class="mt-1 font-app text-xs text-mist">{size.label}</p>
+                    <p class="mt-1 font-app text-xs text-mist">{size.label} · {money(size.price)}</p>
                   </div>
-                  <p class="font-poster text-sm text-cream">{money(size.price)}</p>
                 </li>
               ))}
             </ul>
-            <div class="mt-4 flex items-end justify-between">
+
+            <div class="mt-4 border-t border-hair pt-4 md:mt-0 md:w-52 md:shrink-0 md:border-t-0 md:border-l md:pt-0 md:pl-8">
               <p class="font-app text-xs text-mist">Los tres, listos</p>
-              <p class="font-poster text-2xl text-amber">{money(comboSum)}</p>
+              <p class="font-poster text-2xl text-amber md:mt-1 md:text-[36px]">{money(comboSum)}</p>
+              <button
+                type="button"
+                data-add-combo={JSON.stringify(comboPayload(suggestedCombo))}
+                class="mt-3 flex h-12 w-full items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night"
+              >
+                Sumar el pack
+              </button>
+              <a href={`/combos/${suggestedCombo.slug}`} class="mt-2 flex h-10 items-center justify-center font-micro text-xs text-mist">
+                Ver el pack {suggestedCombo.name}
+              </a>
             </div>
-            <button
-              type="button"
-              data-add-combo={JSON.stringify(comboPayload(suggestedCombo))}
-              class="mt-3 flex h-12 w-full items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night"
-            >
-              Sumar el pack {suggestedCombo.name}
-            </button>
-            <a href={`/combos/${suggestedCombo.slug}`} class="mt-2 flex h-10 items-center justify-center font-micro text-xs text-mist">
-              Ver el pack
-            </a>
           </section>
         )
       }

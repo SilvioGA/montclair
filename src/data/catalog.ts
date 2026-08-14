@@ -39,11 +39,12 @@ export interface Combo {
   items: ComboItem[];
 }
 
-function decants(p3: number, p5: number, p10: number): SizeOption[] {
+function decants(p3: number, p5: number, p10: number, bottle: number): SizeOption[] {
   return [
     { key: "3", label: "3 ml", price: p3, hint: "Para olerlo" },
     { key: "5", label: "5 ml", price: p5, hint: "El que más piden" },
     { key: "10", label: "10 ml", price: p10, hint: "Para usarlo seguido" },
+    { key: "frasco", label: "Frasco", price: bottle, hint: "Si ya lo conoces. Precio estimado." },
   ];
 }
 
@@ -59,7 +60,7 @@ export const perfumes: Perfume[] = [
     image: "/products/le-beau.jpg",
     available: true,
     related: ["le-male-elixir", "eros-edp"],
-    sizes: decants(250, 400, 700),
+    sizes: decants(250, 400, 700, 4900),
   },
   {
     slug: "212-men-edt",
@@ -72,7 +73,7 @@ export const perfumes: Perfume[] = [
     image: "/products/212-men.jpg",
     available: true,
     related: ["light-blue", "eros-edp"],
-    sizes: decants(170, 260, 490),
+    sizes: decants(170, 260, 490, 3450),
   },
   {
     slug: "eros-edp",
@@ -85,7 +86,7 @@ export const perfumes: Perfume[] = [
     image: "/products/eros.jpg",
     available: true,
     related: ["le-beau-le-parfum", "most-wanted"],
-    sizes: decants(160, 240, 440),
+    sizes: decants(160, 240, 440, 3100),
   },
   {
     slug: "light-blue",
@@ -98,7 +99,7 @@ export const perfumes: Perfume[] = [
     image: "/products/light-blue.jpg",
     available: true,
     related: ["212-men-edt", "light-blue-dama"],
-    sizes: decants(150, 220, 420),
+    sizes: decants(150, 220, 420, 2950),
   },
   {
     slug: "light-blue-dama",
@@ -111,7 +112,7 @@ export const perfumes: Perfume[] = [
     image: "/products/light-blue-dama.jpg",
     available: true,
     related: ["valentino-dama-bir", "light-blue"],
-    sizes: decants(160, 240, 440),
+    sizes: decants(160, 240, 440, 3100),
   },
   {
     slug: "santal-33",
@@ -124,7 +125,7 @@ export const perfumes: Perfume[] = [
     image: "/products/santal-33.jpg",
     available: true,
     related: ["most-wanted", "le-male-elixir"],
-    sizes: decants(510, 830, 1640),
+    sizes: decants(510, 830, 1640, 8900),
   },
   {
     slug: "valentino-bir-intense",
@@ -137,7 +138,7 @@ export const perfumes: Perfume[] = [
     image: "/products/valentino-bir.jpg",
     available: false,
     related: ["valentino-dama-bir", "light-blue-dama"],
-    sizes: decants(250, 400, 700),
+    sizes: decants(250, 400, 700, 4900),
   },
   {
     slug: "le-male-elixir",
@@ -150,7 +151,7 @@ export const perfumes: Perfume[] = [
     image: "/products/le-male-elixir.jpg",
     available: true,
     related: ["le-beau-le-parfum", "most-wanted"],
-    sizes: decants(250, 400, 700),
+    sizes: decants(250, 400, 700, 4900),
   },
   {
     slug: "ysl-y-edp",
@@ -163,7 +164,7 @@ export const perfumes: Perfume[] = [
     image: "/products/ysl-y.jpg",
     available: false,
     related: ["212-men-edt", "light-blue"],
-    sizes: decants(220, 380, 680),
+    sizes: decants(220, 380, 680, 4750),
   },
   {
     slug: "valentino-dama-bir",
@@ -176,7 +177,7 @@ export const perfumes: Perfume[] = [
     image: "/products/valentino-dama.jpg",
     available: true,
     related: ["light-blue-dama", "santal-33"],
-    sizes: decants(280, 440, 850),
+    sizes: decants(280, 440, 850, 5950),
   },
   {
     slug: "most-wanted",
@@ -189,7 +190,7 @@ export const perfumes: Perfume[] = [
     image: "/products/most-wanted.jpg",
     available: true,
     related: ["le-male-elixir", "eros-edp"],
-    sizes: decants(200, 320, 600),
+    sizes: decants(200, 320, 600, 4200),
   },
 ];
 

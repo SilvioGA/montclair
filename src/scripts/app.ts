@@ -58,7 +58,7 @@ function sheetRoot() {
 }
 
 function sheetIsOpen() {
-  return Boolean(sheetPerfume);
+  return Boolean(sheetPerfume) && !sheetClosing;
 }
 
 function paint(cart = readCart()) {
@@ -124,13 +124,42 @@ function paint(cart = readCart()) {
 let sheetPerfume: PerfumePayload | null = null;
 let sheetSize: SizeKey = "3";
 let ignoreUntil = 0;
+let sheetClosing = false;
+let sheetLockY = 0;
+
+function blockBgScroll(e: Event) {
+  if ((e.target as HTMLElement).closest("[data-sheet-panel]")) return;
+  e.preventDefault();
+}
+
+function blockBgKeys(e: KeyboardEvent) {
+  if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key)) {
+    if ((e.target as HTMLElement).closest("input, textarea, select")) return;
+    e.preventDefault();
+  }
+}
+
+function lockBackground() {
+  sheetLockY = window.scrollY;
+  document.addEventListener("wheel", blockBgScroll, { passive: false, capture: true });
+  document.addEventListener("touchmove", blockBgScroll, { passive: false, capture: true });
+  document.addEventListener("keydown", blockBgKeys, true);
+}
+
+function unlockBackground() {
+  document.removeEventListener("wheel", blockBgScroll, { capture: true });
+  document.removeEventListener("touchmove", blockBgScroll, { capture: true });
+  document.removeEventListener("keydown", blockBgKeys, true);
+  window.scrollTo({ top: sheetLockY, left: 0, behavior: "instant" });
+}
 
 function openSheet(p: PerfumePayload) {
+  if (sheetClosing) return;
   sheetPerfume = p;
   sheetSize = p.sizes.find((s) => s.key === "3")?.key ?? p.sizes[0].key;
   const root = sheetRoot();
   if (!root) return;
-  document.body.style.overflow = "hidden";
+  lockBackground();
   root.classList.remove("invisible", "pointer-events-none");
   root.classList.add("pointer-events-auto");
   openSheetMotion(root);
@@ -147,14 +176,20 @@ function openSheet(p: PerfumePayload) {
 }
 
 async function closeSheet() {
+  if (!sheetPerfume || sheetClosing) return;
   const root = sheetRoot();
   if (!root) return;
-  document.body.style.overflow = "";
-  await closeSheetMotion(root);
-  root.classList.add("invisible", "pointer-events-none");
-  root.classList.remove("pointer-events-auto");
-  sheetPerfume = null;
-  ignoreUntil = Date.now() + 280;
+  sheetClosing = true;
+  try {
+    await closeSheetMotion(root);
+    root.classList.add("invisible", "pointer-events-none");
+    root.classList.remove("pointer-events-auto");
+  } finally {
+    unlockBackground();
+    sheetPerfume = null;
+    sheetClosing = false;
+    ignoreUntil = Date.now() + 280;
+  }
 }
 
 function renderSheetSizes() {
@@ -210,9 +245,8 @@ function paintPlay(cart: Cart) {
     hint.textContent = cart.count === 1 ? "Suma otro →" : cart.count === 2 ? "¡Uno más! →" : "Pedir →";
   }
   if (main) {
-    main.style.paddingBottom = show
-      ? "calc(6.5rem + env(safe-area-inset-bottom))"
-      : "calc(3.5rem + env(safe-area-inset-bottom))";
+    main.dataset.play = show ? "on" : "off";
+    main.style.paddingBottom = "";
   }
 }
 
@@ -362,6 +396,7 @@ document.addEventListener(
     if (t.closest("[data-sheet-panel]")) return;
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     closeSheet();
   },
   true,

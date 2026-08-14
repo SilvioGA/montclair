@@ -4,8 +4,8 @@ import { store } from "../data/config";
 ---
 
 <App title="Carrito" active="carrito">
-  <div class="px-5 pt-5 pb-6" data-cart-page data-cart-step="summary">
-    <h1 class="font-poster text-[32px] text-cream">CARRITO</h1>
+  <div class="px-5 pt-5 pb-6 md:mx-auto md:max-w-[1100px] md:px-10 md:pt-14 md:pb-24" data-cart-page data-cart-step="summary">
+    <h1 class="font-poster text-[32px] text-cream md:text-6xl">CARRITO</h1>
     <p data-cart-count class="mt-1 font-app text-sm text-mist">0 productos</p>
 
     <div data-cart-empty class="mt-10">
@@ -18,10 +18,11 @@ import { store } from "../data/config";
     </div>
 
     <div data-cart-filled class="hidden">
-      <div data-step-summary>
-        <div data-cart-list class="mt-5 flex flex-col gap-2.5"></div>
+      <div data-step-summary class="md:mt-10 md:grid md:grid-cols-[1fr_340px] md:items-start md:gap-14">
+        <div data-cart-list class="mt-5 flex flex-col gap-2.5 md:mt-0"></div>
 
-        <div class="mt-5 rounded-xl bg-lift px-4 py-4">
+        <div class="md:sticky md:top-28">
+        <div class="mt-5 rounded-xl bg-lift px-4 py-4 md:mt-0 md:px-6 md:py-6">
           <div class="flex items-end justify-between">
             <p class="font-micro text-xs font-semibold tracking-[0.12em] text-amber">TOTAL</p>
             <p data-cart-total class="font-poster text-[34px] leading-none text-cream">C$ 0</p>
@@ -43,6 +44,7 @@ import { store } from "../data/config";
             Continuar el pedido
           </button>
           <a href="/catalogo" class="flex h-12 items-center justify-center font-micro text-sm text-mist">Seguir mirando</a>
+        </div>
         </div>
       </div>
 

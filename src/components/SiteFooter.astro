@@ -1,0 +1,32 @@
+---
+import { store } from "../data/config";
+const wa = `https://wa.me/${store.whatsapp}`;
+---
+
+<footer class="mt-24 hidden border-t border-hair md:block">
+  <div class="mx-auto grid max-w-[1280px] grid-cols-3 gap-16 px-10 py-16">
+    <div>
+      <p class="font-poster text-3xl text-cream">grdecants</p>
+      <p class="mt-1 font-micro text-[11px] font-semibold tracking-[0.28em] text-amber">PARFUMS</p>
+      <p class="mt-5 max-w-xs font-app text-[15px] leading-relaxed text-mist">
+        Prueba el original antes del frasco. Decants de 3, 5 y 10 ml. Pedís por WhatsApp.
+      </p>
+    </div>
+    <div>
+      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-amber">TIENDA</p>
+      <div class="mt-4 flex flex-col gap-3">
+        <a href="/catalogo" class="font-app text-sm text-mist hover:text-cream">Catálogo</a>
+        <a href="/combos" class="font-app text-sm text-mist hover:text-cream">Combos</a>
+        <a href="/carrito" class="font-app text-sm text-mist hover:text-cream">Carrito</a>
+      </div>
+    </div>
+    <div>
+      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-amber">ENVÍOS</p>
+      <p class="mt-4 font-app text-sm leading-relaxed text-mist">{store.coverage}</p>
+      <p class="mt-2 font-app text-sm text-mist">{store.shippingNote}</p>
+      <a href={wa} class="mt-6 inline-block font-micro text-[12px] font-semibold tracking-[0.14em] text-amber uppercase">
+        Escribir por WhatsApp
+      </a>
+    </div>
+  </div>
+</footer>

@@ -20,22 +20,25 @@ const parts = lines.map((l) => l.size.price).join(" + ");
 ---
 
 <App title={combo.name} active="combos">
-  <div>
-    <div class="flex h-[52px] items-center justify-between px-5">
+  <div class="md:mx-auto md:max-w-[1280px] md:px-10 md:pt-8 md:pb-24">
+    <div class="flex h-[52px] items-center justify-between px-5 md:px-0">
       <a href="/combos" data-back class="text-cream" aria-label="Volver">
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6 9 12l6 6"/></svg>
       </a>
-      <p class="font-poster text-lg tracking-wide text-cream">COMBO</p>
+      <p class="font-poster text-lg tracking-wide text-cream md:hidden">COMBO</p>
       <span class="w-6"></span>
     </div>
 
-    <div class="relative h-60 overflow-hidden bg-lift">
+    <div class="md:grid md:grid-cols-2 md:items-start md:gap-16">
+    <div class="relative h-60 overflow-hidden bg-lift md:h-[560px] md:rounded-2xl">
       <img src={combo.image} alt={combo.name} class="h-full w-full object-cover" />
-      <div class="absolute inset-0 bg-gradient-to-t from-night via-night/40 to-transparent"></div>
-      <h1 class="absolute bottom-4 left-5 font-poster text-6xl uppercase text-cream">{combo.name}</h1>
+      <div class="absolute inset-0 bg-gradient-to-t from-night via-night/40 to-transparent md:hidden"></div>
+      <h1 class="absolute bottom-4 left-5 font-poster text-6xl uppercase text-cream md:hidden">{combo.name}</h1>
     </div>
 
-    <div class="px-5 pt-4 pb-6">
+    <div class="px-5 pt-4 pb-6 md:sticky md:top-28 md:px-0 md:pt-4">
+      <p class="hidden font-micro text-[11px] font-semibold tracking-[0.2em] text-amber md:block">COMBO · 3 × 5 ML</p>
+      <h1 class="hidden font-poster text-[64px] uppercase leading-none text-cream md:mt-3 md:block">{combo.name}</h1>
       <p class="font-app text-[15px] text-mist">{combo.blurb}</p>
 
       <ul class="mt-4 divide-y divide-hair">
@@ -72,6 +75,7 @@ const parts = lines.map((l) => l.size.price).join(" + ");
       <p class="mt-3 text-center font-app text-[13px] text-mist">
         ¿Quieres cambiar uno? Entra al <a href="/catalogo" class="text-cream underline">catálogo</a> y arma el tuyo.
       </p>
+    </div>
     </div>
   </div>
 </App>

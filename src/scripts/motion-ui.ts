@@ -36,19 +36,33 @@ export function revealPage() {
 export function openSheetMotion(root: HTMLElement) {
   const dim = root.querySelector<HTMLElement>("[data-sheet-dim]");
   const panel = root.querySelector<HTMLElement>("[data-sheet-panel]");
-  if (reduce() || !dim || !panel) return;
+  if (!dim || !panel) return;
+  dim.style.opacity = "0";
+  panel.style.transform = "translateY(110%)";
+  if (reduce()) {
+    dim.style.opacity = "1";
+    panel.style.transform = "translateY(0)";
+    return;
+  }
   animate(dim, { opacity: [0, 1] }, { duration: 0.28, ease });
-  animate(panel, { transform: ["translateY(110%)", "translateY(0%)"] }, { duration: 0.46, ease });
+  animate(panel, { transform: ["translateY(110%)", "translateY(0)"] }, { duration: 0.42, ease });
 }
 
 export async function closeSheetMotion(root: HTMLElement) {
   const dim = root.querySelector<HTMLElement>("[data-sheet-dim]");
   const panel = root.querySelector<HTMLElement>("[data-sheet-panel]");
-  if (reduce() || !dim || !panel) return;
+  if (!dim || !panel) return;
+  if (reduce()) {
+    dim.style.opacity = "0";
+    panel.style.transform = "translateY(110%)";
+    return;
+  }
   await Promise.all([
-    animate(dim, { opacity: [1, 0] }, { duration: 0.22, ease }),
-    animate(panel, { transform: ["translateY(0%)", "translateY(110%)"] }, { duration: 0.34, ease }),
+    animate(dim, { opacity: [1, 0] }, { duration: 0.2, ease }),
+    animate(panel, { transform: ["translateY(0)", "translateY(110%)"] }, { duration: 0.3, ease }),
   ]);
+  dim.style.opacity = "0";
+  panel.style.transform = "translateY(110%)";
 }
 
 export function popPlay(bar: HTMLElement, show: boolean) {
@@ -81,7 +95,9 @@ function flyOrigin(from: HTMLElement) {
 
 export function flyToCart(from: HTMLElement, image: string) {
   if (reduce() || !image) return;
-  const target = document.querySelector<HTMLElement>("[data-cart-target]");
+  const target = [...document.querySelectorAll<HTMLElement>("[data-cart-target]")].find(
+    (el) => el.offsetParent !== null,
+  );
   if (!target) return;
 
   const origin = flyOrigin(from);

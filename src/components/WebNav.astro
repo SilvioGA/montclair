@@ -1,0 +1,59 @@
+---
+import BrandLockup from "./BrandLockup.astro";
+import { store } from "../data/config";
+
+interface Props {
+  active: "inicio" | "combos" | "catalogo" | "carrito";
+}
+
+const { active } = Astro.props;
+const wa = `https://wa.me/${store.whatsapp}`;
+const links = [
+  { id: "inicio", href: "/", label: "Inicio" },
+  { id: "catalogo", href: "/catalogo", label: "Catálogo" },
+  { id: "combos", href: "/combos", label: "Combos" },
+] as const;
+---
+
+<header class="hidden md:block sticky top-0 z-30 border-b border-hair/80 bg-night/80 backdrop-blur-xl">
+  <div class="mx-auto flex h-20 max-w-[1280px] items-center justify-between gap-10 px-10">
+    <BrandLockup />
+    <nav class="flex items-center gap-9">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              "relative font-micro text-[13px] font-semibold tracking-[0.16em] uppercase",
+              active === link.id ? "text-cream" : "text-mist hover:text-cream",
+            ]}
+          >
+            {link.label}
+            {active === link.id && <span class="absolute -bottom-1 left-0 h-px w-full bg-amber"></span>}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="flex items-center gap-6">
+      <a href={wa} class="font-micro text-[12px] font-semibold tracking-[0.12em] text-mist uppercase hover:text-amber">
+        WhatsApp
+      </a>
+      <a
+        href="/carrito"
+        data-cart-target
+        class:list={[
+          "relative font-micro text-[12px] font-semibold tracking-[0.12em] uppercase",
+          active === "carrito" ? "text-amber" : "text-cream hover:text-amber",
+        ]}
+      >
+        Carrito
+        <span
+          data-cart-badge
+          class="absolute -right-4 -top-2 hidden min-w-4 rounded-full bg-amber px-1 text-center font-micro text-[9px] font-semibold text-night"
+        >
+          0
+        </span>
+      </a>
+    </div>
+  </div>
+</header>

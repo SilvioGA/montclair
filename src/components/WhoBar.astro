@@ -2,9 +2,10 @@
 interface Props {
   para: string;
   base?: string;
+  stacked?: boolean;
 }
 
-const { para } = Astro.props;
+const { para, stacked = false } = Astro.props;
 const options = [
   { id: "ambos", label: "Los dos" },
   { id: "el", label: "Él" },
@@ -13,7 +14,12 @@ const options = [
 
 ---
 
-<div class="flex h-12 gap-1 rounded-[10px] bg-lift p-1" data-who-bar>
+<div
+  class:list={[
+    stacked ? "flex flex-col gap-1" : "flex h-12 gap-1 rounded-[10px] bg-lift p-1",
+  ]}
+  data-who-bar
+>
   {
     options.map((opt) => {
       const on = para === opt.id || (opt.id === "ambos" && (para === "ambos" || para === "todos" || !para));
@@ -22,8 +28,15 @@ const options = [
           type="button"
           data-filter-para={opt.id}
           class:list={[
-            "flex h-full flex-1 items-center justify-center rounded-lg font-poster text-base",
-            on ? "bg-amber text-night" : "text-mist",
+            stacked
+              ? [
+                  "flex h-10 items-center rounded-md px-3 text-left font-micro text-[13px] font-semibold tracking-[0.08em]",
+                  on ? "bg-amber text-night" : "text-mist hover:text-cream",
+                ]
+              : [
+                  "flex h-full flex-1 items-center justify-center rounded-lg font-poster text-base",
+                  on ? "bg-amber text-night" : "text-mist",
+                ],
           ]}
         >
           {opt.label}
