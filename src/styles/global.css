@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-night: #0d0d0d;
-  --color-lift: #161616;
-  --color-cream: #f3f1ec;
-  --color-amber: #c9b37a;
-  --color-mist: #9a9690;
+  --color-night: #000000;
+  --color-lift: #111111;
+  --color-cream: #f4f4f4;
+  --color-amber: #ffffff;
+  --color-mist: #8a8a8a;
   --color-hair: #2a2a2a;
   --font-poster: "Outfit", sans-serif;
   --font-app: "Outfit", sans-serif;
   --font-micro: "Outfit", sans-serif;
+  --font-brand: "Cinzel", serif;
 }
 
 html {
@@ -18,8 +19,8 @@ html {
 
 html,
 body {
-  background: #0d0d0d;
-  color: #f3f1ec;
+  background: #000000;
+  color: #f4f4f4;
   font-family: var(--font-app);
   min-height: 100dvh;
 }
@@ -34,8 +35,13 @@ img {
 }
 
 ::selection {
-  background: #c9b37a;
-  color: #0d0d0d;
+  background: #ffffff;
+  color: #000000;
+}
+
+.font-brand {
+  font-family: var(--font-brand);
+  font-weight: 500;
 }
 
 .font-poster {
@@ -52,7 +58,7 @@ img {
   width: min(100%, 430px);
   margin: 0 auto;
   min-height: 100dvh;
-  background: #0d0d0d;
+  background: #000000;
   position: relative;
 }
 
@@ -66,20 +72,16 @@ img {
 
 @media (min-width: 480px) and (max-width: 767px) {
   body {
-    background:
-      radial-gradient(80% 40% at 50% 0%, #2a2418 0%, transparent 60%),
-      #070707;
+    background: #050505;
   }
   .app-shell {
-    box-shadow: 0 0 0 1px #2e2620, 0 30px 80px #00000088;
+    box-shadow: 0 0 0 1px #1a1a1a, 0 30px 80px #00000088;
   }
 }
 
 @media (min-width: 768px) {
   body {
-    background:
-      radial-gradient(70% 45% at 50% 0%, #2a2418 0%, transparent 55%),
-      #0a0a0a;
+    background: #000000;
   }
   .app-shell {
     width: 100%;

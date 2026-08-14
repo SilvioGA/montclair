@@ -1,5 +1,5 @@
 export const store = {
-  name: "GR Decants Parfums",
+  name: "Montclair",
   whatsapp: "50586966424",
   city: "Estelí",
   coverage: "Salimos de Estelí. En la ciudad, 24 a 48 horas. Al resto del país, por encomienda.",
