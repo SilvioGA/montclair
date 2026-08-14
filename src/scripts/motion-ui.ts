@@ -139,7 +139,7 @@ export function flyToCart(from: HTMLElement, image: string) {
       ],
       opacity: [1, 1, 0],
     },
-    { duration: 0.64, ease },
+    { duration: 0.82, ease },
   );
 
   void run.finished.then(() => ghost.remove()).catch(() => ghost.remove());
