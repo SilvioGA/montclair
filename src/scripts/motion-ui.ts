@@ -1,5 +1,4 @@
 import { animate, stagger } from "motion";
-import { playAddSound } from "../lib/sound";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
@@ -95,7 +94,6 @@ function flyOrigin(from: HTMLElement) {
 }
 
 export function flyToCart(from: HTMLElement, image: string) {
-  playAddSound();
   if (reduce() || !image) return;
   const target = [...document.querySelectorAll<HTMLElement>("[data-cart-target]")].find(
     (el) => el.offsetParent !== null,
