@@ -2,7 +2,7 @@ import { itemId, totals, type Cart, type CartItem } from "../lib/cart";
 import type { SizeKey } from "../data/catalog";
 import { orderMessage, whatsappUrl } from "../lib/whatsapp";
 import { money } from "../lib/money";
-import { closeSheetMotion, flyToCart, openSheetMotion, popBadge, popPlay, pressPop } from "./motion-ui";
+import { closeSheetMotion, flyToCart, openSheetMotion, popBadge, popPlay, pressPop, revealPage } from "./motion-ui";
 
 const KEY = "cata-cart-v3";
 
@@ -149,12 +149,12 @@ function openSheet(p: PerfumePayload) {
 async function closeSheet() {
   const root = sheetRoot();
   if (!root) return;
+  document.body.style.overflow = "";
   await closeSheetMotion(root);
   root.classList.add("invisible", "pointer-events-none");
   root.classList.remove("pointer-events-auto");
-  document.body.style.overflow = "";
   sheetPerfume = null;
-  ignoreUntil = Date.now() + 200;
+  ignoreUntil = Date.now() + 280;
 }
 
 function renderSheetSizes() {
@@ -178,7 +178,7 @@ function renderSheetSizes() {
   if (confirm && size) confirm.textContent = `Sumar ${size.label} · ${money(size.price)}`;
 }
 
-let playWasShown: boolean | null = null;
+let playWasShown = false;
 
 function paintPlay(cart: Cart) {
   const bar = document.querySelector<HTMLElement>("[data-play-bar]");
@@ -190,8 +190,8 @@ function paintPlay(cart: Cart) {
     if (show) {
       bar.classList.remove("hidden", "pointer-events-none");
       bar.classList.add("flex", "pointer-events-auto");
-      if (playWasShown !== null) popPlay(bar, true);
-    } else if (playWasShown) {
+      popPlay(bar, true);
+    } else {
       popPlay(bar, false);
       window.setTimeout(() => {
         if (playWasShown) return;
@@ -660,6 +660,7 @@ document.addEventListener("submit", (e) => {
 });
 
 const onReady = () => {
+  playWasShown = false;
   paint();
   paintPerfumeCta();
   setCartStep("summary");
@@ -667,7 +668,9 @@ const onReady = () => {
   applyComboFilters();
   rememberBrowse();
   paintBackLinks();
+  revealPage();
   restoreListScroll();
 };
 document.addEventListener("astro:after-swap", restoreListScroll);
 document.addEventListener("astro:page-load", onReady);
+onReady();
