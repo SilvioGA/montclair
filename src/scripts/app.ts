@@ -357,8 +357,16 @@ function applyGenderFilter(para: string) {
   document.querySelectorAll("[data-who-line]").forEach((el) => {
     el.textContent = line;
   });
+  sessionStorage.setItem(PARA_KEY, para);
+  syncParaLinks(para);
   document.querySelectorAll<HTMLElement>("[data-who-bar] [data-filter-para]").forEach((btn) => {
     const on = btn.getAttribute("data-filter-para") === para;
+    const stacked = Boolean(btn.closest("[data-who-stacked]"));
+    btn.toggleAttribute("data-on", on);
+    if (stacked) {
+      btn.classList.remove("bg-amber", "text-night");
+      return;
+    }
     btn.classList.toggle("bg-amber", on);
     btn.classList.toggle("text-night", on);
     btn.classList.toggle("text-mist", !on);
@@ -376,8 +384,40 @@ function applyGenderFilter(para: string) {
   applyComboFilters();
 }
 
+const PARA_KEY = "gr-para";
+
+function withPara(href: string, para: string) {
+  const url = new URL(href, location.origin);
+  if (para && para !== "ambos") url.searchParams.set("para", para);
+  else url.searchParams.delete("para");
+  return url.pathname + url.search;
+}
+
+function syncParaLinks(para: string) {
+  document.querySelectorAll<HTMLAnchorElement>("[data-keep-para]").forEach((a) => {
+    const base = a.getAttribute("data-keep-para") || a.getAttribute("href") || "/";
+    a.setAttribute("href", withPara(base, para));
+  });
+}
+
 function currentGender() {
-  return new URLSearchParams(window.location.search).get("para") || "ambos";
+  const fromUrl = new URLSearchParams(window.location.search).get("para");
+  if (fromUrl) return fromUrl;
+  if (location.pathname.startsWith("/catalogo")) {
+    return sessionStorage.getItem(PARA_KEY) || "ambos";
+  }
+  return "ambos";
+}
+
+function isCatalogPath(path: string) {
+  const p = path.replace(/\/$/, "") || "/";
+  return p === "/catalogo" || p.startsWith("/catalogo/");
+}
+
+function applyParaToUrl(url: URL, para = currentGender()) {
+  if (!isCatalogPath(url.pathname)) return;
+  if (para && para !== "ambos") url.searchParams.set("para", para);
+  else url.searchParams.delete("para");
 }
 
 function setCartStep(step: "summary" | "checkout") {
@@ -503,9 +543,30 @@ function onLeaveFor(destPath: string) {
 }
 
 document.addEventListener("astro:before-preparation", (e) => {
-  const to = "to" in e ? (e as Event & { to?: URL }).to : undefined;
-  if (to?.pathname) onLeaveFor(to.pathname);
+  const ev = e as Event & { to?: URL };
+  if (ev.to) {
+    applyParaToUrl(ev.to);
+    onLeaveFor(ev.to.pathname);
+  }
 });
+
+document.addEventListener(
+  "click",
+  (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
+    if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+    try {
+      const dest = new URL(a.getAttribute("href") || "", location.origin);
+      if (dest.origin !== location.origin) return;
+      if (!isCatalogPath(dest.pathname)) return;
+      applyParaToUrl(dest);
+      a.setAttribute("href", dest.pathname + dest.search);
+    } catch {
+      /* ignore */
+    }
+  },
+  true,
+);
 
 document.addEventListener("click", (e) => {
   const t = e.target as HTMLElement;
@@ -670,6 +731,9 @@ document.addEventListener("keydown", (e) => {
   const url = new URL(base, window.location.origin);
   if (q) url.searchParams.set("q", q);
   else url.searchParams.delete("q");
+  const para = currentGender();
+  if (para && para !== "ambos") url.searchParams.set("para", para);
+  else url.searchParams.delete("para");
   window.location.href = url.pathname + url.search;
 });
 
@@ -685,7 +749,7 @@ document.addEventListener("submit", (e) => {
       orderMessage(cart, {
         name: String(data.get("name") || ""),
         phone: String(data.get("phone") || ""),
-        city: String(data.get("city") || "Estelí"),
+        city: String(data.get("city") || "Managua"),
         address: String(data.get("address") || ""),
         pay: String(data.get("pay") || "Transferencia"),
       }),

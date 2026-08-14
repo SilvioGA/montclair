@@ -1,5 +1,6 @@
 ---
 import App from "../../layouts/App.astro";
+import BackLink from "../../components/BackLink.astro";
 import { combos, comboLines, comboTotal, getCombo } from "../../data/catalog";
 import { comboPayload } from "../../lib/payload";
 import { money } from "../../lib/money";
@@ -21,12 +22,10 @@ const parts = lines.map((l) => l.size.price).join(" + ");
 
 <App title={combo.name} active="combos">
   <div class="md:mx-auto md:max-w-[1280px] md:px-10 md:pt-8 md:pb-24">
-    <div class="flex h-[52px] items-center justify-between px-5 md:px-0">
-      <a href="/combos" data-back class="text-cream" aria-label="Volver">
-        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6 9 12l6 6"/></svg>
-      </a>
+    <div class="flex h-[52px] items-center justify-between px-5 md:h-auto md:justify-start md:px-0 md:pb-5">
+      <BackLink href="/combos" label="Combos" />
       <p class="font-poster text-lg tracking-wide text-cream md:hidden">COMBO</p>
-      <span class="w-6"></span>
+      <span class="w-6 md:hidden" aria-hidden="true"></span>
     </div>
 
     <div class="md:grid md:grid-cols-2 md:items-start md:gap-16">

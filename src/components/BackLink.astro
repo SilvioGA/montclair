@@ -1,0 +1,25 @@
+---
+interface Props {
+  href: string;
+  label: string;
+  list?: boolean;
+  keepPara?: string;
+}
+
+const { href, label, list = false, keepPara } = Astro.props;
+---
+
+<a
+  href={href}
+  data-back
+  {...(list ? { "data-back-list": true } : {})}
+  {...(keepPara ? { "data-keep-para": keepPara } : {})}
+  class="inline-flex items-center text-cream md:text-mist md:hover:text-cream"
+  aria-label={`Volver a ${label}`}
+>
+  <svg class="h-6 w-6 md:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6 9 12l6 6"/></svg>
+  <span class="hidden items-center gap-2 md:inline-flex">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6 9 12l6 6"/></svg>
+    <span class="font-micro text-[12px] font-semibold tracking-[0.16em] uppercase">{label}</span>
+  </span>
+</a>

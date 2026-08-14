@@ -19,8 +19,8 @@ const payload = JSON.stringify(perfumePayload(perfume));
   data-world={perfume.world}
   data-moods={perfume.moods.join(",")}
 >
-  <a href={`/perfume/${perfume.slug}`} class="relative block overflow-hidden rounded-lg bg-lift md:rounded-xl">
-    <img src={perfume.image} alt={`${perfume.house} ${perfume.name}`} class="h-[168px] w-full object-cover md:h-[320px] md:transition-transform md:duration-500 md:ease-[cubic-bezier(0.32,0.72,0,1)] md:hover:scale-[1.03]" />
+  <a href={`/perfume/${perfume.slug}`} class="relative block overflow-hidden rounded-lg bg-lift ring-1 ring-white/10 md:rounded-xl">
+    <img src={perfume.image} alt={`${perfume.house} ${perfume.name}`} class="h-[168px] w-full object-cover object-center md:h-[380px] md:transition-transform md:duration-500 md:ease-[cubic-bezier(0.32,0.72,0,1)] md:hover:scale-[1.03]" />
     {
       !perfume.available && (
         <span class="absolute left-2 top-2 rounded-full bg-[#c43b3b] px-2 py-0.5 font-micro text-[10px] font-semibold text-cream">

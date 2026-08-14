@@ -1,32 +1,63 @@
 ---
 import { store } from "../data/config";
+import { collections } from "../data/catalog";
+
 const wa = `https://wa.me/${store.whatsapp}`;
 ---
 
 <footer class="mt-24 hidden border-t border-hair md:block">
-  <div class="mx-auto grid max-w-[1280px] grid-cols-3 gap-16 px-10 py-16">
+  <div class="mx-auto grid max-w-[1280px] grid-cols-[1.2fr_0.7fr_1fr_1.1fr] gap-16 px-10 py-14">
     <div>
-      <p class="font-brand text-2xl tracking-[0.22em] text-cream">MONTCLAIR</p>
-      <p class="mt-1 font-micro text-[11px] font-semibold tracking-[0.28em] text-cream/70">DECANT / FRAGRANCE</p>
-      <p class="mt-5 max-w-xs font-app text-[15px] leading-relaxed text-mist">
-        Prueba el original antes del frasco. Decants de 3, 5 y 10 ml. Pedís por WhatsApp.
+      <p class="font-brand text-[22px] tracking-[0.2em] text-cream">MONTCLAIR</p>
+      <p class="mt-1.5 font-micro text-[10px] font-semibold tracking-[0.22em] text-mist">DECANT / FRAGRANCE · MANAGUA</p>
+      <p class="mt-5 max-w-[16rem] font-app text-[14px] leading-relaxed text-mist">
+        Prueba el original antes del frasco. Decants de 3, 5 y 10 ml.
       </p>
+      <nav class="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+        <a href={wa} class="font-micro text-[12px] font-semibold tracking-[0.14em] text-cream hover:text-amber">
+          WhatsApp
+        </a>
+        {
+          store.socials.map((item) => (
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noreferrer"
+              class="font-micro text-[12px] font-semibold tracking-[0.14em] text-cream hover:text-amber"
+            >
+              {item.name}
+            </a>
+          ))
+        }
+      </nav>
     </div>
+
     <div>
-      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-amber">TIENDA</p>
-      <div class="mt-4 flex flex-col gap-3">
-        <a href="/catalogo" class="font-app text-sm text-mist hover:text-cream">Catálogo</a>
-        <a href="/combos" class="font-app text-sm text-mist hover:text-cream">Combos</a>
-        <a href="/carrito" class="font-app text-sm text-mist hover:text-cream">Carrito</a>
-      </div>
+      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-mist">TIENDA</p>
+      <nav class="mt-4 flex flex-col gap-2.5">
+        <a href="/catalogo" class="font-app text-[14px] text-mist hover:text-cream">Catálogo</a>
+        <a href="/combos" class="font-app text-[14px] text-mist hover:text-cream">Combos</a>
+        <a href="/carrito" class="font-app text-[14px] text-mist hover:text-cream">Carrito</a>
+      </nav>
     </div>
+
     <div>
-      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-amber">ENVÍOS</p>
-      <p class="mt-4 font-app text-sm leading-relaxed text-mist">{store.coverage}</p>
-      <p class="mt-2 font-app text-sm text-mist">{store.shippingNote}</p>
-      <a href={wa} class="mt-6 inline-block font-micro text-[12px] font-semibold tracking-[0.14em] text-amber uppercase">
-        Escribir por WhatsApp
-      </a>
+      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-mist">COLECCIONES</p>
+      <nav class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5">
+        {
+          collections.map((col) => (
+            <a href={col.href} data-keep-para={col.href} class="font-app text-[14px] text-mist hover:text-cream">
+              {col.name}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+
+    <div>
+      <p class="font-micro text-[11px] font-semibold tracking-[0.18em] text-mist">ENVÍOS</p>
+      <p class="mt-4 font-app text-[14px] leading-relaxed text-mist">{store.coverage}</p>
+      <p class="mt-2 font-app text-[14px] text-mist">{store.shippingNote}</p>
     </div>
   </div>
 </footer>

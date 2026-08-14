@@ -1,0 +1,42 @@
+---
+import { collections } from "../data/catalog";
+import { withPara } from "../lib/links";
+
+interface Props {
+  para: string;
+  current?: string;
+}
+
+const { para, current } = Astro.props;
+---
+
+<nav class="mt-3 flex flex-col gap-0.5">
+  {
+    current && (
+      <a
+        href={withPara("/catalogo", para)}
+        data-keep-para="/catalogo"
+        class="flex h-9 items-center rounded-md px-2.5 font-app text-[15px] text-mist hover:bg-white/[0.08] hover:text-cream"
+      >
+        Todo el catálogo
+      </a>
+    )
+  }
+  {
+    collections.map((item) => {
+      const on = item.slug === current;
+      return (
+        <a
+          href={withPara(item.href, para)}
+          data-keep-para={item.href}
+          class:list={[
+            "flex h-9 items-center rounded-md px-2.5 font-app text-[15px]",
+            on ? "bg-white/[0.08] text-cream" : "text-mist hover:bg-white/[0.08] hover:text-cream",
+          ]}
+        >
+          {item.name}
+        </a>
+      );
+    })
+  }
+</nav>

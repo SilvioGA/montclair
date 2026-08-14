@@ -11,14 +11,14 @@ const options = [
   { id: "el", label: "Él" },
   { id: "ella", label: "Ella" },
 ];
-
 ---
 
 <div
   class:list={[
-    stacked ? "flex flex-col gap-1" : "flex h-12 gap-1 rounded-[10px] bg-lift p-1",
+    stacked ? "flex flex-col gap-0.5" : "flex h-12 gap-1 rounded-[10px] bg-lift p-1",
   ]}
   data-who-bar
+  {...(stacked ? { "data-who-stacked": true } : {})}
 >
   {
     options.map((opt) => {
@@ -27,12 +27,10 @@ const options = [
         <button
           type="button"
           data-filter-para={opt.id}
+          data-on={on ? "" : undefined}
           class:list={[
             stacked
-              ? [
-                  "flex h-10 items-center rounded-md px-3 text-left font-micro text-[13px] font-semibold tracking-[0.08em]",
-                  on ? "bg-amber text-night" : "text-mist hover:text-cream",
-                ]
+              ? "flex h-9 items-center rounded-md px-2.5 text-left font-app text-[15px] text-mist transition-[color,background-color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/[0.08] hover:text-cream data-[on]:bg-white/[0.08] data-[on]:text-cream data-[on]:hover:bg-white/[0.12]"
               : [
                   "flex h-full flex-1 items-center justify-center rounded-lg font-poster text-base",
                   on ? "bg-amber text-night" : "text-mist",
