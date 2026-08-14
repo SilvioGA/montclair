@@ -73,6 +73,14 @@ img {
   background: #0d0d0dcc;
 }
 
+[data-sheet-root].invisible [data-sheet-dim] {
+  opacity: 0;
+}
+
+[data-sheet-root].invisible [data-sheet-panel] {
+  transform: translateY(110%);
+}
+
 input,
 textarea {
   font: inherit;
@@ -84,13 +92,6 @@ input::placeholder {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-reveal],
-  [data-who-bar],
-  [data-stagger] > *,
-  [data-combo-card] {
-    opacity: 0;
-  }
-
   button,
   a {
     transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);

@@ -1,4 +1,4 @@
-import { animate, stagger } from "motion";
+import { animate } from "motion";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
@@ -6,49 +6,36 @@ function reduce() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function revealPage() {
-  const intro = document.querySelectorAll(
-    "[data-reveal], [data-app-main] > div > header, [data-app-main] h1, [data-who-bar]",
-  );
-  const cards = document.querySelectorAll("[data-stagger] > *, [data-combo-card]");
-  if (reduce()) {
-    [...intro, ...cards].forEach((el) => {
-      (el as HTMLElement).style.opacity = "1";
-    });
-    return;
-  }
-  if (intro.length) {
-    animate(
-      intro,
-      { opacity: [0, 1], transform: ["translateY(14px)", "translateY(0px)"] },
-      { duration: 0.45, delay: stagger(0.05), ease },
-    );
-  }
-  if (cards.length) {
-    animate(
-      cards,
-      { opacity: [0, 1], transform: ["translateY(18px)", "translateY(0px)"] },
-      { duration: 0.42, delay: stagger(0.035, { startDelay: 0.08 }), ease },
-    );
-  }
-}
-
 export function openSheetMotion(root: HTMLElement) {
   const dim = root.querySelector<HTMLElement>("[data-sheet-dim]");
   const panel = root.querySelector<HTMLElement>("[data-sheet-panel]");
-  if (reduce() || !dim || !panel) return;
+  if (!dim || !panel) return;
+  dim.style.opacity = "0";
+  panel.style.transform = "translateY(110%)";
+  if (reduce()) {
+    dim.style.opacity = "1";
+    panel.style.transform = "translateY(0%)";
+    return;
+  }
   animate(dim, { opacity: [0, 1] }, { duration: 0.28, ease });
-  animate(panel, { transform: ["translateY(110%)", "translateY(0%)"] }, { duration: 0.46, ease });
+  animate(panel, { transform: ["translateY(110%)", "translateY(0%)"] }, { duration: 0.42, ease });
 }
 
 export async function closeSheetMotion(root: HTMLElement) {
   const dim = root.querySelector<HTMLElement>("[data-sheet-dim]");
   const panel = root.querySelector<HTMLElement>("[data-sheet-panel]");
-  if (reduce() || !dim || !panel) return;
+  if (!dim || !panel) return;
+  if (reduce()) {
+    dim.style.opacity = "0";
+    panel.style.transform = "translateY(110%)";
+    return;
+  }
   await Promise.all([
-    animate(dim, { opacity: [1, 0] }, { duration: 0.22, ease }),
-    animate(panel, { transform: ["translateY(0%)", "translateY(110%)"] }, { duration: 0.34, ease }),
+    animate(dim, { opacity: [1, 0] }, { duration: 0.2, ease }),
+    animate(panel, { transform: ["translateY(0%)", "translateY(110%)"] }, { duration: 0.3, ease }),
   ]);
+  dim.style.opacity = "0";
+  panel.style.transform = "translateY(110%)";
 }
 
 export function popPlay(bar: HTMLElement, show: boolean) {
