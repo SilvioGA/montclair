@@ -436,21 +436,20 @@ function restoreListScroll() {
   if (!isListPath(location.pathname)) return;
   const here = normPath(location.pathname);
   const marked = sessionStorage.getItem(RESTORE_KEY);
-  if (marked !== here) {
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    return;
-  }
-  sessionStorage.removeItem(RESTORE_KEY);
   const raw = sessionStorage.getItem(scrollKey());
-  if (raw == null) {
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  if (marked !== here || raw == null) {
+    if (marked !== here) window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     return;
   }
   const y = Number(raw);
   const go = () => window.scrollTo({ top: y, left: 0, behavior: "instant" });
+  go();
   requestAnimationFrame(go);
   window.setTimeout(go, 40);
   window.setTimeout(go, 200);
+  window.setTimeout(() => {
+    if (sessionStorage.getItem(RESTORE_KEY) === here) sessionStorage.removeItem(RESTORE_KEY);
+  }, 260);
 }
 
 function onLeaveFor(destPath: string) {
@@ -462,7 +461,8 @@ function onLeaveFor(destPath: string) {
     return;
   }
   const marked = sessionStorage.getItem(RESTORE_KEY);
-  if (marked && marked !== dest) forgetListScroll(marked);
+  if (marked === dest) return;
+  if (marked) forgetListScroll(marked);
   if (isListPath(from)) forgetListScroll(from);
   sessionStorage.removeItem(RESTORE_KEY);
 }
@@ -671,5 +671,6 @@ const onReady = () => {
   revealPage();
   restoreListScroll();
 };
+document.addEventListener("astro:after-swap", restoreListScroll);
 document.addEventListener("astro:page-load", onReady);
 onReady();
