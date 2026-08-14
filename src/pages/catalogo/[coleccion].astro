@@ -77,15 +77,10 @@ const base = `/catalogo/${col.slug}`;
 
       {
         list.length === 0 && (
-          <div class="mt-8 rounded-xl bg-lift px-4 py-5">
+          <div class="mt-8">
             <p class="font-poster text-2xl text-cream">Aún no están aquí</p>
-            <p class="mt-2 font-app text-sm text-mist">
-              Este grupo todavía no está en la web. Escríbenos y te decimos qué hay.
-            </p>
-            <a
-              href={`https://wa.me/${store.whatsapp}`}
-              class="mt-4 flex h-12 items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night"
-            >
+            <p class="mt-2 font-app text-sm text-mist">Este grupo todavía no está en la web. Escríbenos y te decimos qué hay.</p>
+            <a href={`https://wa.me/${store.whatsapp}`} class="mt-4 inline-block font-micro text-[13px] font-semibold tracking-[0.08em] text-cream">
               Preguntar por WhatsApp
             </a>
           </div>
@@ -160,22 +155,26 @@ const base = `/catalogo/${col.slug}`;
               <p class="font-micro text-[11px] font-semibold tracking-[0.2em] text-amber">COLECCIÓN</p>
               <h1 class="mt-1.5 font-brand text-[42px] leading-none tracking-[0.04em] uppercase text-cream">{col.name}</h1>
               <p class="mt-2 max-w-md font-app text-[15px] leading-snug text-cream/70">{intro[col.slug]}</p>
-              <p class="mt-3 font-app text-[13px] text-mist">
-                <span data-catalog-count>{list.length}</span> en {col.name}
-              </p>
+              {
+                list.length > 0 && (
+                  <p class="mt-3 font-app text-[13px] text-mist">
+                    <span data-catalog-count>{list.length}</span> en {col.name}
+                  </p>
+                )
+              }
             </div>
           </header>
 
           {
             list.length === 0 ? (
-              <div class="mt-12 max-w-md rounded-xl bg-lift px-6 py-7">
-                <p class="font-poster text-3xl text-cream">Aún no están aquí</p>
-                <p class="mt-2 font-app text-sm text-mist">
+              <div class="mt-10 max-w-lg">
+                <p class="font-poster text-[32px] leading-none text-cream">Aún no están aquí</p>
+                <p class="mt-3 font-app text-[16px] leading-relaxed text-mist">
                   Este grupo todavía no está en la web. Escríbenos y te decimos qué hay.
                 </p>
                 <a
                   href={`https://wa.me/${store.whatsapp}`}
-                  class="mt-5 flex h-12 items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night"
+                  class="mt-6 inline-flex h-12 items-center rounded-lg bg-amber px-6 font-micro text-sm font-semibold text-night"
                 >
                   Preguntar por WhatsApp
                 </a>
