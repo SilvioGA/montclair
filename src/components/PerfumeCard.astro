@@ -14,7 +14,7 @@ const payload = JSON.stringify(perfumePayload(perfume));
 ---
 
 <article
-  class="flex flex-col gap-2"
+  class="flex h-full flex-col gap-2"
   data-gender={perfume.gender}
   data-world={perfume.world}
   data-moods={perfume.moods.join(",")}
@@ -30,7 +30,7 @@ const payload = JSON.stringify(perfumePayload(perfume));
     }
   </a>
   <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-amber">{perfume.house.toUpperCase()}</p>
-  <a href={`/perfume/${perfume.slug}`} class="font-poster text-xl leading-none text-cream">{perfume.name}</a>
+  <a href={`/perfume/${perfume.slug}`} class="min-h-[2.5rem] font-poster text-xl leading-tight text-cream">{perfume.name}</a>
   <div class="flex items-center justify-between gap-2">
     <p class="font-app text-xs text-mist">{start.label} · {money(start.price)}</p>
     <p class="font-micro text-[10px] text-mist">{worldLabel[perfume.world]}</p>
@@ -41,12 +41,12 @@ const payload = JSON.stringify(perfumePayload(perfume));
         <button
           type="button"
           data-open-sheet={payload}
-          class="mt-1 rounded-md bg-amber px-2.5 py-1.5 font-micro text-[11px] font-semibold text-night md:mt-2 md:h-11 md:w-full md:text-[13px]"
+          class="mt-auto w-full rounded-md bg-amber px-2.5 py-1.5 font-micro text-[11px] font-semibold text-night md:h-11 md:text-[13px]"
         >
           Sumar
         </button>
       ) : (
-        <p class="mt-1 font-micro text-[11px] text-mist">Hoy no hay</p>
+        <p class="mt-auto font-micro text-[11px] text-mist">Hoy no hay</p>
       ))
   }
 </article>
