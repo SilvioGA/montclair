@@ -4,16 +4,26 @@ import { store } from "../data/config";
 ---
 
 <App title="Carrito" active="carrito">
-  <div class="px-5 pt-5 pb-6 md:mx-auto md:max-w-[1100px] md:px-10 md:pt-14 md:pb-24" data-cart-page data-cart-step="summary">
-    <h1 class="font-poster text-[32px] text-cream md:text-6xl">CARRITO</h1>
-    <p data-cart-count class="mt-1 font-app text-sm text-mist">0 productos</p>
+  <div class="px-5 pt-5 pb-6 md:mx-auto md:max-w-[1280px] md:px-10 md:pt-12 md:pb-24" data-cart-page data-cart-step="summary">
+    <header class="flex items-end justify-between">
+      <div>
+        <p class="hidden font-micro text-[11px] font-semibold tracking-[0.2em] text-amber md:block">TU PEDIDO</p>
+        <h1 class="font-poster text-[32px] tracking-[-0.04em] text-cream md:mt-2 md:text-[56px]">
+          <span class="md:hidden">CARRITO</span>
+          <span class="hidden md:inline">Carrito</span>
+        </h1>
+      </div>
+      <p data-cart-count class="font-app text-sm text-mist md:mb-2.5">0 productos</p>
+    </header>
 
-    <div data-cart-empty class="mt-10">
-      <p class="font-poster text-2xl text-cream">Todavía no hay nada</p>
-      <p class="mt-2 font-app text-sm text-mist">Suma un perfume del catálogo. Eliges los ml y ves el precio en córdobas antes de pedir.</p>
-      <div class="mt-5 flex flex-col gap-2">
-        <a href="/catalogo" class="flex h-12 items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night">Ir al catálogo</a>
-        <a href="/combos" class="flex h-12 items-center justify-center rounded-lg border border-hair font-micro text-sm text-cream">Ver combos</a>
+    <div data-cart-empty class="mt-10 md:mt-16 md:max-w-xl">
+      <p class="font-poster text-2xl text-cream md:text-[40px] md:leading-none">Todavía no hay nada</p>
+      <p class="mt-2 max-w-md font-app text-sm text-mist md:mt-4 md:text-[17px] md:leading-relaxed">
+        Suma un perfume del catálogo. Eliges los ml y ves el precio en córdobas antes de pedir.
+      </p>
+      <div class="mt-5 flex flex-col gap-2 md:mt-8 md:flex-row md:gap-3">
+        <a href="/catalogo" class="flex h-12 items-center justify-center rounded-lg bg-amber font-micro text-sm font-semibold text-night md:h-14 md:px-8">Ir al catálogo</a>
+        <a href="/combos" class="flex h-12 items-center justify-center rounded-lg border border-hair font-micro text-sm text-cream md:h-14 md:px-8">Ver combos</a>
       </div>
     </div>
 
