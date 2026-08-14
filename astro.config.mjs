@@ -3,7 +3,7 @@ import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  site: "https://gr-decants.vercel.app",
+  site: "https://montclairnic.vercel.app",
   output: "static",
   devToolbar: {
     enabled: false,
