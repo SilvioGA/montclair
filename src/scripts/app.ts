@@ -608,6 +608,7 @@ document.addEventListener("click", (e) => {
 
   if (t.closest("[data-back-summary]")) {
     setCartStep("summary");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
 
