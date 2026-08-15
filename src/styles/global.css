@@ -121,6 +121,15 @@ input::placeholder {
   color: #a89888;
 }
 
+[data-cart-page][data-cart-step="checkout"] [data-step-summary],
+[data-cart-page][data-cart-step="checkout"] [data-cart-heading] {
+  display: none;
+}
+
+[data-cart-page][data-cart-step="summary"] [data-step-checkout] {
+  display: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   [data-reveal],
   [data-who-bar],

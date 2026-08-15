@@ -757,6 +757,8 @@ document.addEventListener("submit", (e) => {
     ),
     "_blank",
   );
+  writeCart([]);
+  setCartStep("summary");
 });
 
 const onReady = () => {
