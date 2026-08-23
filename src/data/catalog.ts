@@ -1,13 +1,16 @@
 export type Gender = "ella" | "el" | "ambos";
 export type World = "disenador" | "nicho" | "arabes";
 export type Mood = "dulce" | "fresco" | "noche" | "oficina";
-export type SizeKey = "3" | "5" | "10" | "frasco";
+export type SizeKey = string;
+export type SizeKind = "ml" | "bottle";
 
 export interface SizeOption {
   key: SizeKey;
   label: string;
   price: number;
   hint: string;
+  kind?: SizeKind;
+  ml?: number;
 }
 
 export interface Perfume {
@@ -26,7 +29,7 @@ export interface Perfume {
 
 export interface ComboItem {
   slug: string;
-  size: Exclude<SizeKey, "frasco">;
+  size: SizeKey;
 }
 
 export interface Combo {
@@ -37,15 +40,41 @@ export interface Combo {
   gender: Gender;
   moods: Mood[];
   items: ComboItem[];
+  price: number;
 }
 
 function decants(p3: number, p5: number, p10: number, bottle: number): SizeOption[] {
   return [
-    { key: "3", label: "3 ml", price: p3, hint: "Para olerlo" },
-    { key: "5", label: "5 ml", price: p5, hint: "El que más piden" },
-    { key: "10", label: "10 ml", price: p10, hint: "Para usarlo seguido" },
-    { key: "frasco", label: "Frasco", price: bottle, hint: "Si ya lo conoces. Precio estimado." },
+    { key: "3", label: "3 ml", price: p3, hint: "Para olerlo", kind: "ml", ml: 3 },
+    { key: "5", label: "5 ml", price: p5, hint: "El que más piden", kind: "ml", ml: 5 },
+    { key: "10", label: "10 ml", price: p10, hint: "Para usarlo seguido", kind: "ml", ml: 10 },
+    { key: "frasco", label: "Frasco", price: bottle, hint: "Si ya lo conoces. Precio estimado.", kind: "bottle" },
   ];
+}
+
+export function isBottle(size: SizeOption) {
+  return size.kind === "bottle" || size.key === "frasco";
+}
+
+export function sizeMl(size: SizeOption) {
+  if (isBottle(size)) return Number.POSITIVE_INFINITY;
+  if (typeof size.ml === "number" && Number.isFinite(size.ml)) return size.ml;
+  const n = Number(size.key);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function normalizeSize(raw: Partial<SizeOption> & { key: string; price: number }): SizeOption {
+  const bottle = raw.kind === "bottle" || raw.key === "frasco";
+  const ml = bottle ? undefined : Number(raw.ml ?? raw.key);
+  const amount = bottle || !Number.isFinite(ml as number) ? undefined : (ml as number);
+  return {
+    key: bottle ? "frasco" : String(amount ?? raw.key),
+    label: raw.label || (bottle ? "Frasco" : `${amount} ml`),
+    price: Number(raw.price) || 0,
+    hint: raw.hint || "",
+    kind: bottle ? "bottle" : "ml",
+    ml: amount,
+  };
 }
 
 export const perfumes: Perfume[] = [
@@ -207,6 +236,7 @@ export const combos: Combo[] = [
       { slug: "most-wanted", size: "5" },
       { slug: "le-beau-le-parfum", size: "5" },
     ],
+    price: 1120,
   },
   {
     slug: "todo-el-dia",
@@ -220,6 +250,7 @@ export const combos: Combo[] = [
       { slug: "light-blue", size: "5" },
       { slug: "eros-edp", size: "5" },
     ],
+    price: 720,
   },
   {
     slug: "oficina",
@@ -233,6 +264,7 @@ export const combos: Combo[] = [
       { slug: "212-men-edt", size: "5" },
       { slug: "santal-33", size: "5" },
     ],
+    price: 1310,
   },
   {
     slug: "ella",
@@ -246,17 +278,74 @@ export const combos: Combo[] = [
       { slug: "light-blue-dama", size: "5" },
       { slug: "santal-33", size: "5" },
     ],
+    price: 1510,
   },
 ];
 
 export const collections = [
-  { slug: "arabes", name: "Árabes", href: "/catalogo/arabes", kind: "world" as const, world: "arabes" as World },
-  { slug: "nicho", name: "Nicho", href: "/catalogo/nicho", kind: "world" as const, world: "nicho" as World },
-  { slug: "diseno", name: "Diseño", href: "/catalogo/diseno", kind: "world" as const, world: "disenador" as World },
-  { slug: "noche", name: "Noche", href: "/catalogo/noche", kind: "mood" as const, mood: "noche" as Mood },
-  { slug: "dulce", name: "Dulce", href: "/catalogo/dulce", kind: "mood" as const, mood: "dulce" as Mood },
-  { slug: "fresco", name: "Fresco", href: "/catalogo/fresco", kind: "mood" as const, mood: "fresco" as Mood },
-  { slug: "oficina", name: "Oficina", href: "/catalogo/oficina", kind: "mood" as const, mood: "oficina" as Mood },
+  {
+    slug: "arabes",
+    name: "Árabes",
+    href: "/catalogo/arabes",
+    kind: "world" as const,
+    world: "arabes" as World,
+    cover: "/collections/arabes.jpg",
+    intro: "Dulces, densos, se quedan en la piel. Si te gusta Baccarat, empiezas aquí.",
+  },
+  {
+    slug: "nicho",
+    name: "Nicho",
+    href: "/catalogo/nicho",
+    kind: "world" as const,
+    world: "nicho" as World,
+    cover: "/collections/nicho.jpg",
+    intro: "Casas chicas, jugo caro. Para oler distinto.",
+  },
+  {
+    slug: "diseno",
+    name: "Diseño",
+    href: "/catalogo/diseno",
+    kind: "world" as const,
+    world: "disenador" as World,
+    cover: "/collections/diseno.jpg",
+    intro: "Los que todo el mundo conoce. Seguros para regalar.",
+  },
+  {
+    slug: "noche",
+    name: "Noche",
+    href: "/catalogo/noche",
+    kind: "mood" as const,
+    mood: "noche" as Mood,
+    cover: "/collections/noche.jpg",
+    intro: "Se quedan. Para salir, no para la oficina.",
+  },
+  {
+    slug: "dulce",
+    name: "Dulce",
+    href: "/catalogo/dulce",
+    kind: "mood" as const,
+    mood: "dulce" as Mood,
+    cover: "/collections/dulce.jpg",
+    intro: "Vainilla, dátil, azúcar. Si te gusta lo denso.",
+  },
+  {
+    slug: "fresco",
+    name: "Fresco",
+    href: "/catalogo/fresco",
+    kind: "mood" as const,
+    mood: "fresco" as Mood,
+    cover: "/collections/fresco.jpg",
+    intro: "Limpios, de día. No aturden.",
+  },
+  {
+    slug: "oficina",
+    name: "Oficina",
+    href: "/catalogo/oficina",
+    kind: "mood" as const,
+    mood: "oficina" as Mood,
+    cover: "/collections/oficina.jpg",
+    intro: "Cortos y educados. Nadie se queja en el ascensor.",
+  },
 ];
 
 export function getPerfume(slug: string) {
@@ -281,12 +370,22 @@ export function comboLines(combo: Combo) {
   });
 }
 
-export function comboTotal(combo: Combo) {
+export function comboPartsSum(combo: Combo) {
   return comboLines(combo).reduce((acc, line) => acc + line.size.price, 0);
 }
 
+export function comboTotal(combo: Combo) {
+  if (typeof combo.price === "number" && Number.isFinite(combo.price) && combo.price > 0) {
+    return combo.price;
+  }
+  return comboPartsSum(combo);
+}
+
 export function smallestSize(perfume: Perfume) {
-  return perfume.sizes.find((s) => s.key === "3") ?? perfume.sizes[0];
+  if (!perfume.sizes.length) {
+    return normalizeSize({ key: "5", price: 0, kind: "ml", ml: 5 });
+  }
+  return [...perfume.sizes].sort((a, b) => sizeMl(a) - sizeMl(b))[0];
 }
 
 export function filterPerfumes(opts: {
@@ -326,4 +425,11 @@ export const genderLabel: Record<Gender, string> = {
   ella: "Ella",
   el: "Él",
   ambos: "Los dos",
+};
+
+export const moodLabel: Record<Mood, string> = {
+  dulce: "Dulce",
+  fresco: "Fresco",
+  noche: "Noche",
+  oficina: "Oficina",
 };

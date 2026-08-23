@@ -180,6 +180,26 @@ WhatsApp, cobertura, redes, ciudades.
 
 ## Criterio de listo
 
+## Cómo arrancar (fase 1)
+
+El panel vive en `/admin`. Los datos, en Cloudflare D1. En local:
+
+```bash
+npm install
+npm run db:init
+```
+
+Dos terminales:
+
+```bash
+npm run api
+npm run dev
+```
+
+Abrí `http://localhost:4321/admin`. Clave inicial: `montclair`.
+
+En producción hace falta un Worker en Cloudflare (`wrangler deploy`) y `PUBLIC_API_URL` apuntando a ese Worker. Sin el API, la tienda sigue usando el catálogo del build.
+
 La fase 1 está lista cuando Silvio, desde el celular, marca YSL Y como agotado y en menos de un minuto la ficha en montclair ya dice Agotado, sin abrir VS Code.
 
 La fase 4 está lista cuando un pedido por WhatsApp también aparece en el panel, con nombre, ciudad y qué ml pidieron.

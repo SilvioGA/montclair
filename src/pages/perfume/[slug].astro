@@ -1,7 +1,7 @@
 ---
 import App from "../../layouts/App.astro";
 import BackLink from "../../components/BackLink.astro";
-import { combos, comboLines, comboTotal, getPerfume, genderLabel, perfumes, worldLabel, type Perfume } from "../../data/catalog";
+import { combos, comboLines, comboTotal, getPerfume, genderLabel, isBottle, perfumes, smallestSize, worldLabel, type Perfume } from "../../data/catalog";
 import { comboPayload, perfumePayload } from "../../lib/payload";
 import { money } from "../../lib/money";
 import { store } from "../../data/config";
@@ -23,9 +23,13 @@ const perfume = getPerfume(Astro.params.slug!);
 if (!perfume) return Astro.redirect("/catalogo");
 
 const payload = perfumePayload(perfume);
-const decants = perfume.sizes.filter((s) => s.key !== "frasco");
-const bottle = perfume.sizes.find((s) => s.key === "frasco");
-const related = perfume.related.map((s) => getPerfume(s)).filter((p): p is Perfume => Boolean(p));
+const measures = perfume.sizes.filter((s) => !isBottle(s));
+const bottle = perfume.sizes.find(isBottle);
+const start = smallestSize(perfume);
+const related = perfume.related
+  .map((s) => getPerfume(s))
+  .filter((p): p is Perfume => Boolean(p))
+  .slice(0, 2);
 const suggestedCombo = combos.find((c) => c.items.some((i) => i.slug === perfume.slug));
 const comboItems = suggestedCombo ? comboLines(suggestedCombo) : [];
 const comboSum = suggestedCombo ? comboTotal(suggestedCombo) : 0;
@@ -35,7 +39,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
 <App title={perfume.name} active="catalogo">
   <div
     data-perfume-page={JSON.stringify(payload)}
-    data-selected-size="3"
+    data-selected-size={start.key}
   >
     <div class="flex h-[52px] items-center justify-between px-5 md:mx-auto md:h-auto md:max-w-[1280px] md:justify-start md:px-10 md:pt-8 md:pb-5">
       <BackLink href="/catalogo" label="Catálogo" list />
@@ -70,31 +74,38 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
       {
         perfume.available ? (
           <>
-            <p class="mt-5 font-app text-sm font-semibold text-cream">¿De cuánto?</p>
-            <div class="mt-3 flex gap-3">
-              {decants.map((s, i) => (
-                <button
-                  type="button"
-                  data-select-size={s.key}
-                  class:list={[
-                    "flex flex-1 flex-col items-center rounded-lg px-2 py-3.5",
-                    i === 0 ? "bg-amber text-night" : "bg-lift text-cream",
-                  ]}
-                >
-                  <span class="font-micro text-xs font-semibold">{s.label}</span>
-                  <span class="font-poster text-base">{money(s.price)}</span>
-                </button>
-              ))}
-            </div>
+            {measures.length > 0 && (
+              <>
+                <p class="mt-5 font-app text-sm font-semibold text-cream">¿De cuánto?</p>
+                <div class="mt-3 flex flex-wrap gap-3">
+                  {measures.map((s) => (
+                    <button
+                      type="button"
+                      data-select-size={s.key}
+                      class:list={[
+                        "flex min-w-[6.5rem] flex-1 flex-col items-center rounded-lg px-2 py-3.5",
+                        s.key === start.key ? "bg-amber text-night" : "bg-lift text-cream",
+                      ]}
+                    >
+                      <span class="font-micro text-xs font-semibold">{s.label}</span>
+                      <span class="font-poster text-base">{money(s.price)}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             {bottle && (
               <button
                 type="button"
                 data-select-size={bottle.key}
-                class="mt-5 flex w-full items-center justify-between rounded-lg bg-lift px-3.5 py-3.5 text-left text-cream"
+                class:list={[
+                  "mt-5 flex w-full items-center justify-between rounded-lg px-3.5 py-3.5 text-left",
+                  start.key === bottle.key ? "bg-amber text-night" : "bg-lift text-cream",
+                ]}
               >
                 <span>
                   <span class="block font-app text-sm font-semibold">Frasco completo</span>
-                  <span class="block font-app text-xs opacity-70">Si ya lo conoces. Precio estimado.</span>
+                  <span class="block font-app text-xs opacity-70">{bottle.hint || "Si ya lo conoces."}</span>
                 </span>
                 <span class="font-poster text-xl">{money(bottle.price)}</span>
               </button>
@@ -104,7 +115,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
               data-perfume-cta
               class="mt-6 flex h-[54px] w-full items-center justify-center rounded-lg bg-amber font-micro text-[15px] font-semibold text-night"
             >
-              Sumar 3 ml · {money(decants[0].price)}
+              Sumar {start.label} · {money(start.price)}
             </button>
             <p class="mt-2 text-center font-app text-[12px] text-mist">{store.shippingNote}</p>
           </>
@@ -134,7 +145,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
 
             <ul class="mt-4 flex flex-col gap-3 md:hidden">
               {related.map((r) => {
-                const start = r.sizes.find((s) => s.key === "5") ?? r.sizes[0];
+                const start = smallestSize(r);
                 return (
                   <li>
                     <a href={`/perfume/${r.slug}`} class="flex items-center gap-3 rounded-xl bg-lift p-3">
@@ -155,7 +166,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
 
             <ul class="mt-8 hidden gap-8 md:grid md:grid-cols-2">
               {related.map((r) => {
-                const start = r.sizes.find((s) => s.key === "5") ?? r.sizes[0];
+                const start = smallestSize(r);
                 return (
                   <li>
                     <a href={`/perfume/${r.slug}`} class="block">
@@ -200,7 +211,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
             </ul>
 
             <div class="mt-4 border-t border-hair pt-4 md:mt-0 md:w-52 md:shrink-0 md:border-t-0 md:border-l md:pt-0 md:pl-8">
-              <p class="font-app text-xs text-mist">Los tres, listos</p>
+              <p class="font-app text-xs text-mist">El pack</p>
               <p class="font-poster text-2xl text-amber md:mt-1 md:text-[36px]">{money(comboSum)}</p>
               <button
                 type="button"

@@ -1,5 +1,5 @@
 import type { Perfume } from "../data/catalog";
-import { comboLines, type Combo } from "../data/catalog";
+import { comboTotal, type Combo } from "../data/catalog";
 
 export function perfumePayload(p: Perfume) {
   return {
@@ -12,13 +12,15 @@ export function perfumePayload(p: Perfume) {
 }
 
 export function comboPayload(combo: Combo) {
-  return comboLines(combo).map(({ perfume, size }) => ({
-    slug: perfume.slug,
-    name: perfume.name,
-    house: perfume.house,
-    size: size.key,
-    sizeLabel: size.label,
-    price: size.price,
-    image: perfume.image,
-  }));
+  return [
+    {
+      slug: combo.slug,
+      name: combo.name,
+      house: "Pack",
+      size: "pack",
+      sizeLabel: `Pack · ${combo.items.length}`,
+      price: comboTotal(combo),
+      image: combo.image,
+    },
+  ];
 }

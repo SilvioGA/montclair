@@ -1,0 +1,12 @@
+name = "montclair-api"
+main = "worker/index.ts"
+compatibility_date = "2026-04-01"
+
+[vars]
+ADMIN_PASSWORD = "montclair"
+ADMIN_SECRET = "cambia-esto-en-produccion"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "montclair"
+database_id = "local-montclair"

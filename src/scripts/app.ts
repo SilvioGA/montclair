@@ -1,4 +1,5 @@
 import { itemId, totals, type Cart, type CartItem } from "../lib/cart";
+import { apiUrl } from "../lib/api";
 import type { SizeKey } from "../data/catalog";
 import { orderMessage, whatsappUrl } from "../lib/whatsapp";
 import { money } from "../lib/money";
@@ -153,10 +154,17 @@ function unlockBackground() {
   window.scrollTo({ top: sheetLockY, left: 0, behavior: "instant" });
 }
 
+function firstSize(sizes: PerfumePayload["sizes"]) {
+  if (!sizes.length) return undefined;
+  const ml = sizes.filter((s) => s.key !== "frasco");
+  const pool = ml.length ? ml : sizes;
+  return [...pool].sort((a, b) => (Number(a.key) || 9999) - (Number(b.key) || 9999))[0];
+}
+
 function openSheet(p: PerfumePayload) {
   if (sheetClosing) return;
   sheetPerfume = p;
-  sheetSize = p.sizes.find((s) => s.key === "3")?.key ?? p.sizes[0].key;
+  sheetSize = firstSize(p.sizes)?.key ?? p.sizes[0].key;
   const root = sheetRoot();
   if (!root) return;
   lockBackground();
@@ -292,7 +300,7 @@ function currentPerfumePage() {
   const page = document.querySelector<HTMLElement>("[data-perfume-page]");
   if (!page) return null;
   const payload = JSON.parse(page.getAttribute("data-perfume-page") || "null") as PerfumePayload | null;
-  const selected = (page.getAttribute("data-selected-size") as SizeKey) || "3";
+  const selected = (page.getAttribute("data-selected-size") as SizeKey) || firstSize(payload?.sizes || [])?.key || "";
   return { page, payload, selected };
 }
 
@@ -761,6 +769,76 @@ document.addEventListener("submit", (e) => {
   setCartStep("summary");
 });
 
+async function hydrateCatalog() {
+  try {
+    const res = await fetch(apiUrl("/catalog"));
+    if (!res.ok) return;
+    const data = (await res.json()) as {
+      perfumes: { slug: string; available: boolean; sizes: { key: string; label: string; price: number }[] }[];
+    };
+    const map = new Map(data.perfumes.map((p) => [p.slug, p]));
+    document.querySelectorAll<HTMLElement>("[data-slug]").forEach((el) => {
+      const p = map.get(el.getAttribute("data-slug") || "");
+      if (!p) return;
+      el.querySelector("[data-agotado]")?.classList.toggle("hidden", p.available);
+      el.querySelector("[data-soldout]")?.classList.toggle("hidden", p.available);
+      const btn = el.querySelector<HTMLElement>("[data-open-sheet]");
+      btn?.classList.toggle("hidden", !p.available);
+      if (btn) {
+        try {
+          const payload = JSON.parse(btn.getAttribute("data-open-sheet") || "{}");
+          payload.sizes = p.sizes;
+          btn.setAttribute("data-open-sheet", JSON.stringify(payload));
+        } catch {
+          /* ignore */
+        }
+      }
+      const start = firstSize(p.sizes) ?? p.sizes[0];
+      const line = el.querySelector("[data-price-line]");
+      if (line && start) line.textContent = `${start.label} · ${money(start.price)}`;
+    });
+  } catch {
+    /* API apagado: se usa el catálogo del build */
+  }
+}
+
+function hydratePayOptions() {
+  const root = document.querySelector("[data-checkout-form]");
+  if (!root) return;
+  try {
+    const raw = localStorage.getItem("montclair-admin-v2");
+    if (!raw) return;
+    const payments = JSON.parse(raw)?.store?.payments as
+      | { transfer?: { on?: boolean } | boolean; mobile?: { on?: boolean } | boolean; cash?: { on?: boolean } | boolean }
+      | undefined;
+    if (!payments) return;
+    const on = (v: { on?: boolean } | boolean | undefined, fallback: boolean) => {
+      if (typeof v === "boolean") return v;
+      if (v && typeof v === "object") return v.on !== false;
+      return fallback;
+    };
+    const map: Record<string, boolean> = {
+      transfer: on(payments.transfer, true),
+      mobile: on(payments.mobile, true),
+      cash: on(payments.cash, true),
+    };
+    root.querySelectorAll<HTMLElement>("[data-pay-option]").forEach((el) => {
+      const key = el.getAttribute("data-pay-option") || "";
+      const show = map[key] !== false;
+      el.classList.toggle("hidden", !show);
+      const input = el.querySelector<HTMLInputElement>("input");
+      if (!show && input?.checked) input.checked = false;
+    });
+    const checked = root.querySelector<HTMLInputElement>("[data-pay-option]:not(.hidden) input:checked");
+    if (!checked) {
+      const first = root.querySelector<HTMLInputElement>("[data-pay-option]:not(.hidden) input");
+      if (first) first.checked = true;
+    }
+  } catch {
+    /* sin panel: se muestran las tres */
+  }
+}
+
 const onReady = () => {
   playWasShown = false;
   paint();
@@ -772,6 +850,8 @@ const onReady = () => {
   paintBackLinks();
   revealPage();
   restoreListScroll();
+  hydratePayOptions();
+  void hydrateCatalog();
 };
 document.addEventListener("astro:after-swap", restoreListScroll);
 document.addEventListener("astro:page-load", onReady);

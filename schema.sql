@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS perfumes (
+  slug TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  house TEXT NOT NULL,
+  smell TEXT NOT NULL,
+  gender TEXT NOT NULL,
+  world TEXT NOT NULL,
+  moods TEXT NOT NULL,
+  image TEXT NOT NULL,
+  available INTEGER NOT NULL DEFAULT 1,
+  price_3 INTEGER NOT NULL,
+  price_5 INTEGER NOT NULL,
+  price_10 INTEGER NOT NULL,
+  price_frasco INTEGER NOT NULL,
+  related TEXT NOT NULL
+);

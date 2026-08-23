@@ -1,0 +1,154 @@
+---
+import Admin from "../../layouts/Admin.astro";
+---
+
+<Admin title="Panel">
+  <div data-admin>
+    <div data-admin-login class="mx-auto flex min-h-dvh max-w-[400px] flex-col justify-center px-6">
+      <p class="font-brand text-[13px] tracking-[0.28em] text-cream">MONTCLAIR</p>
+      <h1 class="mt-5 font-poster text-[44px] leading-none tracking-[-0.04em] text-cream">Mostrador</h1>
+      <p class="mt-4 font-app text-[15px] leading-relaxed text-mist">
+        Inventario de prueba: perfumes, combos y colecciones. Se guarda en este navegador.
+      </p>
+      <form data-admin-gate class="mt-8">
+        <label class="block cursor-pointer">
+          <span class="font-app text-[13px] text-mist">Clave</span>
+          <input name="password" type="password" required autocomplete="current-password" class="mt-2 h-12 w-full rounded-xl bg-lift px-4 font-app text-[15px] outline-none" />
+        </label>
+        <p data-admin-error class="mt-3 hidden font-app text-sm text-[#e05a5a]"></p>
+        <button type="submit" class="mt-6 flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-amber font-micro text-[13px] font-semibold tracking-[0.08em] text-night hover:opacity-90">
+          Entrar
+        </button>
+      </form>
+    </div>
+
+    <div data-admin-app class="hidden">
+      <header class="sticky top-0 z-10 border-b border-white/10 bg-night/85 backdrop-blur-xl">
+        <div class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 sm:px-6">
+          <div>
+            <p class="font-brand text-[13px] tracking-[0.22em] text-cream">MONTCLAIR</p>
+            <p class="mt-0.5 font-micro text-[9px] font-semibold tracking-[0.18em] text-mist">INVENTARIO DE PRUEBA</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" data-admin-logout class="cursor-pointer rounded-full px-3 py-2 font-micro text-[11px] font-semibold tracking-[0.12em] text-mist uppercase ring-1 ring-white/15 hover:text-cream hover:ring-white/40 sm:px-4">
+              Salir
+            </button>
+          </div>
+        </div>
+        <div class="mx-auto flex max-w-[1440px] gap-2 overflow-x-auto px-4 pb-4 sm:px-6">
+          {
+            [
+              ["perfumes", "Perfumes"],
+              ["combos", "Combos"],
+              ["collections", "Colecciones"],
+              ["store", "Tienda"],
+            ].map(([id, label]) => (
+              <button
+                type="button"
+                data-nav={id}
+                class="cursor-pointer rounded-full px-4 py-2 font-micro text-[12px] font-semibold tracking-[0.12em] uppercase text-mist hover:text-cream"
+              >
+                {label}
+              </button>
+            ))
+          }
+        </div>
+      </header>
+
+      <div class="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+        <section data-view="perfumes" class="hidden">
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <h1 class="font-poster text-[36px] leading-none tracking-[-0.04em] text-cream">Perfumes</h1>
+              <p class="mt-2 font-app text-[14px] text-mist">Precios, medidas y en qué colección entra.</p>
+            </div>
+            <button type="button" data-new="perfume" class="cursor-pointer rounded-full bg-amber px-5 py-3 font-micro text-[12px] font-semibold tracking-[0.08em] text-night hover:opacity-90">
+              Crear perfume
+            </button>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center gap-2">
+            <label class="relative min-w-[220px] flex-1">
+              <span class="sr-only">Buscar</span>
+              <input data-filter="q" type="search" placeholder="Busca casa o nombre" class="h-11 w-full rounded-full bg-lift px-4 font-app text-sm outline-none ring-1 ring-white/10 placeholder:text-mist" />
+            </label>
+            <select data-filter="stock" class="h-11 cursor-pointer rounded-full bg-lift px-4 font-app text-sm outline-none ring-1 ring-white/10">
+              <option value="all">Todo el stock</option>
+              <option value="on">En venta</option>
+              <option value="off">Agotados</option>
+            </select>
+            <select data-filter="gender" class="h-11 cursor-pointer rounded-full bg-lift px-4 font-app text-sm outline-none ring-1 ring-white/10">
+              <option value="all">Él y ella</option>
+              <option value="el">Él</option>
+              <option value="ella">Ella</option>
+              <option value="ambos">Los dos</option>
+            </select>
+            <select data-filter="world" class="h-11 cursor-pointer rounded-full bg-lift px-4 font-app text-sm outline-none ring-1 ring-white/10">
+              <option value="all">Todos los mundos</option>
+              <option value="disenador">Diseño</option>
+              <option value="nicho">Nicho</option>
+              <option value="arabes">Árabes</option>
+            </select>
+          </div>
+          <p data-filter-count class="mt-4 font-app text-[13px] text-mist"></p>
+          <div data-list="perfumes" class="mt-5"></div>
+        </section>
+
+        <section data-view="combos" class="hidden">
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <h1 class="font-poster text-[36px] leading-none tracking-[-0.04em] text-cream">Combos</h1>
+              <p class="mt-2 font-app text-[14px] text-mist">Packs ya armados. Vos ponés qué llevan y a qué precio se venden.</p>
+            </div>
+            <button type="button" data-new="combo" class="cursor-pointer rounded-full bg-amber px-5 py-3 font-micro text-[12px] font-semibold tracking-[0.08em] text-night hover:opacity-90">
+              Nuevo combo
+            </button>
+          </div>
+          <div data-list="combos" class="mt-8"></div>
+        </section>
+
+        <section data-view="collections" class="hidden">
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <h1 class="font-poster text-[36px] leading-none tracking-[-0.04em] text-cream">Colecciones</h1>
+              <p class="mt-2 font-app text-[14px] text-mist">La foto ancha de la página, el texto encima, y cómo agrupa los perfumes.</p>
+            </div>
+            <button type="button" data-new="collection" class="cursor-pointer rounded-full bg-amber px-5 py-3 font-micro text-[12px] font-semibold tracking-[0.08em] text-night hover:opacity-90">
+              Nueva colección
+            </button>
+          </div>
+          <div data-list="collections" class="mt-8"></div>
+        </section>
+
+        <section data-view="store" class="hidden">
+          <form data-form="store"></form>
+        </section>
+      </div>
+    </div>
+
+    <div data-modal class="fixed inset-0 z-20 hidden">
+      <button type="button" data-modal-dim class="absolute inset-0 cursor-pointer bg-black/75" aria-label="Cerrar"></button>
+      <div class="absolute inset-0 flex items-center justify-center p-3 md:p-5">
+        <div data-modal-panel class="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[920px] flex-col overflow-hidden rounded-2xl bg-[#111] ring-1 ring-white/10">
+          <form data-modal-form class="flex min-h-0 flex-1 flex-col overflow-hidden"></form>
+        </div>
+      </div>
+    </div>
+
+    <div data-confirm class="fixed inset-0 z-40 hidden">
+      <button type="button" data-confirm-dim class="absolute inset-0 cursor-pointer bg-black/70" aria-label="Cancelar"></button>
+      <div class="absolute inset-0 flex items-center justify-center px-4">
+        <div class="w-full max-w-[22rem] rounded-2xl bg-[#161616] p-6 ring-1 ring-white/10">
+          <p data-confirm-title class="font-poster text-2xl text-cream"></p>
+          <p data-confirm-body class="mt-3 font-app text-[14px] leading-relaxed text-mist"></p>
+          <div class="mt-6 flex flex-col gap-2">
+            <button type="button" data-confirm-yes class="flex h-11 cursor-pointer items-center justify-center rounded-lg bg-[#c43b3b] font-micro text-[12px] font-semibold text-cream">Quitar</button>
+            <button type="button" data-confirm-no class="flex h-11 cursor-pointer items-center justify-center rounded-lg font-micro text-[12px] font-semibold text-mist ring-1 ring-white/15 hover:text-cream">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-toast class="pointer-events-none fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-cream px-5 py-2.5 font-app text-sm text-night shadow-[0_12px_40px_#00000088]"></div>
+  </div>
+</Admin>

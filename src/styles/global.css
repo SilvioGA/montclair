@@ -14,7 +14,31 @@
 }
 
 html {
-  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a #000000;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 999px;
+  border: 2px solid #000000;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #3f3f3f;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 html,

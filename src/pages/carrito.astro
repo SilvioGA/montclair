@@ -102,21 +102,21 @@ import { store } from "../data/config";
           <fieldset>
             <legend class="font-app text-[13px] text-mist">¿Cómo quieres pagar?</legend>
             <div class="mt-2 flex flex-col gap-2">
-              <label class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
+              <label data-pay-option="transfer" class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
                 <input type="radio" name="pay" value="Transferencia" checked class="accent-amber" />
                 <span>
                   <span class="block font-app text-sm text-cream">Transferencia</span>
                   <span class="block font-app text-xs text-mist">Te pasamos los datos por chat</span>
                 </span>
               </label>
-              <label class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
+              <label data-pay-option="mobile" class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
                 <input type="radio" name="pay" value="Pago móvil" class="accent-amber" />
                 <span>
                   <span class="block font-app text-sm text-cream">Pago móvil</span>
                   <span class="block font-app text-xs text-mist">Igual, te lo confirmamos al pedir</span>
                 </span>
               </label>
-              <label class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
+              <label data-pay-option="cash" class="flex items-center gap-3 rounded-xl bg-lift px-3.5 py-3">
                 <input type="radio" name="pay" value="Al llegar" class="accent-amber" />
                 <span>
                   <span class="block font-app text-sm text-cream">Cuando me llegue</span>

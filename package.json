@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "api": "wrangler dev",
+    "db:init": "wrangler d1 execute montclair --local --file=schema.sql && wrangler d1 execute montclair --local --file=seed.sql",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
@@ -16,5 +18,8 @@
     "astro": "^7.2.2",
     "motion": "^13.1.0",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.124.0"
   }
 }

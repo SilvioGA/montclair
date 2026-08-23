@@ -4,7 +4,7 @@ import BackLink from "../../components/BackLink.astro";
 import WhoBar from "../../components/WhoBar.astro";
 import CollectionNav from "../../components/CollectionNav.astro";
 import PerfumeCard from "../../components/PerfumeCard.astro";
-import { collections, filterPerfumes, type Gender } from "../../data/catalog";
+import { collections, filterPerfumes, smallestSize, type Gender } from "../../data/catalog";
 import { money } from "../../lib/money";
 import { perfumePayload } from "../../lib/payload";
 import { store } from "../../data/config";
@@ -24,28 +24,8 @@ const list = filterPerfumes({
   mood: col.kind === "mood" ? col.mood : undefined,
 });
 
-const intro: Record<string, string> = {
-  arabes: "Dulces, densos, se quedan en la piel. Si te gusta Baccarat, empiezas aquí.",
-  nicho: "Casas chicas, jugo caro. Para oler distinto.",
-  diseno: "Los que todo el mundo conoce. Seguros para regalar.",
-  noche: "Se quedan. Para salir, no para la oficina.",
-  dulce: "Vainilla, dátil, azúcar. Si te gusta lo denso.",
-  fresco: "Limpios, de día. No aturden.",
-  oficina: "Cortos y educados. Nadie se queja en el ascensor.",
-};
-
-const unsplash: Record<string, string> = {
-  arabes: "photo-1578662996442-48f60103fc96",
-  nicho: "photo-1594035910387-fea47794261f",
-  diseno: "photo-1541643600914-78b084683601",
-  noche: "photo-1514933651103-005eec06c04b",
-  dulce: "photo-1514362545857-3bc16c4c7d1b",
-  fresco: "photo-1497366216548-37526070297c",
-  oficina: "photo-1497366811353-6870744d04b2",
-};
-
-const photo = unsplash[col.slug] ?? unsplash.oficina;
-const cover = `/collections/${col.slug}.jpg`;
+const cover = col.cover || `/collections/${col.slug}.jpg`;
+const intro = col.intro || "";
 const base = `/catalogo/${col.slug}`;
 ---
 
@@ -60,17 +40,13 @@ const base = `/catalogo/${col.slug}`;
     </div>
 
     <div class="relative h-[200px] overflow-hidden bg-lift">
-      <img
-        src={`https://images.unsplash.com/${photo}?auto=format&fit=crop&w=900&q=80`}
-        alt={col.name}
-        class="h-full w-full object-cover"
-      />
+      <img src={cover} alt={col.name} class="h-full w-full object-cover" />
       <div class="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent"></div>
       <h1 class="absolute bottom-4 left-5 font-poster text-5xl uppercase text-cream">{col.name}</h1>
     </div>
 
     <div class="px-5 pt-3 pb-6">
-      <p class="font-app text-[15px] text-mist">{intro[col.slug]}</p>
+      <p class="font-app text-[15px] text-mist">{intro}</p>
       <div class="mt-4">
         <WhoBar para={para} base={base} />
       </div>
@@ -95,9 +71,9 @@ const base = `/catalogo/${col.slug}`;
       <ul class="mt-5 flex flex-col gap-3.5">
         {
           list.map((p) => {
-            const start = p.sizes.find((s) => s.key === "3") ?? p.sizes[0];
+            const start = smallestSize(p);
             return (
-              <li class="flex items-center gap-3" data-gender={p.gender}>
+              <li class="flex items-center gap-3" data-slug={p.slug} data-gender={p.gender}>
                 <a href={`/perfume/${p.slug}`} class="relative shrink-0">
                   <img src={p.image} alt={p.name} class="h-20 w-16 rounded-md object-cover bg-lift" />
                   {
@@ -159,7 +135,7 @@ const base = `/catalogo/${col.slug}`;
             <div class="absolute inset-y-0 left-0 flex w-[62%] flex-col justify-center px-7">
               <p class="font-micro text-[11px] font-semibold tracking-[0.2em] text-amber">COLECCIÓN</p>
               <h1 class="mt-1.5 font-brand text-[42px] leading-none tracking-[0.04em] uppercase text-cream">{col.name}</h1>
-              <p class="mt-2 max-w-md font-app text-[15px] leading-snug text-cream/70">{intro[col.slug]}</p>
+              <p class="mt-2 max-w-md font-app text-[15px] leading-snug text-cream/70">{intro}</p>
               <p class="mt-3 font-app text-[13px] text-mist">
                 <span data-catalog-count>{list.length}</span> en {col.name}
               </p>
