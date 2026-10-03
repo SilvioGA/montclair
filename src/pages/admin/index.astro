@@ -41,6 +41,7 @@ import Admin from "../../layouts/Admin.astro";
               ["perfumes", "Perfumes"],
               ["combos", "Combos"],
               ["collections", "Colecciones"],
+              ["promos", "Ofertas"],
               ["store", "Tienda"],
             ].map(([id, label]) => (
               <button
@@ -118,6 +119,20 @@ import Admin from "../../layouts/Admin.astro";
             </button>
           </div>
           <div data-list="collections" class="mt-8"></div>
+        </section>
+
+        <section data-view="promos" class="hidden">
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <h1 class="font-poster text-[36px] leading-none tracking-[-0.04em] text-cream">Ofertas</h1>
+              <p class="mt-2 font-app text-[14px] text-mist">Rebajas por unos días. El precio de lista no se toca; cuando termina, vuelve solo.</p>
+            </div>
+            <button type="button" data-new="promo" class="cursor-pointer rounded-full bg-amber px-5 py-3 font-micro text-[12px] font-semibold tracking-[0.08em] text-night hover:opacity-90">
+              Nueva oferta
+            </button>
+          </div>
+          <div data-promo-stats class="mt-8"></div>
+          <div data-list="promos" class="mt-5"></div>
         </section>
 
         <section data-view="store" class="hidden">

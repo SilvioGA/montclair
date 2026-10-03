@@ -23,8 +23,36 @@ export interface Perfume {
   moods: Mood[];
   image: string;
   available: boolean;
+  /** Aviso manual "Quedan pocos". La plataforma no lleva stock. */
+  lowStock?: boolean;
   sizes: SizeOption[];
   related: string[];
+}
+
+export type PromoKind = "percent" | "amount" | "price";
+
+/**
+ * Una oferta sobre un perfume por un tiempo. No toca el precio de lista.
+ * Misma forma que la tabla `promotions` (Supabase, multitenant).
+ */
+export interface Promotion {
+  id: string;
+  perfumeSlug: string;
+  title: string;
+  kind: PromoKind;
+  /** percent: 0-100 · amount: córdobas menos · price: se ignora (ver prices) */
+  value: number;
+  /** kind = price: precio fijo por medida, { "5": 320 } */
+  prices?: Record<string, number>;
+  /** null = todas las medidas */
+  sizeKeys: string[] | null;
+  /** ISO 8601 */
+  startsAt: string;
+  /** ISO 8601 · null = sin fin */
+  endsAt: string | null;
+  showCountdown: boolean;
+  enabled: boolean;
+  createdAt: string;
 }
 
 export interface ComboItem {

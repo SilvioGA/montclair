@@ -35,9 +35,28 @@ import {
   type Gender,
   type Mood,
   type Perfume,
+  type PromoKind,
+  type Promotion,
   type SizeOption,
   type World,
 } from "../data/catalog";
+import {
+  activePromoFor,
+  discountText,
+  effectivePrice,
+  endsToday,
+  fromLocalInput,
+  newPromoId,
+  overlaps,
+  progress,
+  promoBadge,
+  promoStatus,
+  shortDate,
+  spanDates,
+  timeLeft,
+  toLocalInput,
+  type PromoStatus,
+} from "../lib/promo";
 
 let state = loadState();
 let view = "perfumes";
@@ -116,32 +135,47 @@ function switchCtl(on: boolean, extra: string) {
   </button>`;
 }
 
-function storeCard(p: Perfume) {
+function promoOf(slug: string) {
+  return activePromoFor(state.promotions, slug);
+}
+
+function storeCard(p: Perfume, promo: Promotion | null = promoOf(p.slug)) {
   const start = smallestSize(p);
+  const eff = effectivePrice(start, p.available ? promo : null);
+  const badge = promo && p.available && p.sizes.some((s) => effectivePrice(s, promo).was) ? promoBadge(promo, p.sizes) : "";
+  const priceLine = !p.available
+    ? "Hoy no hay"
+    : eff.was
+      ? `${start.label} · <span class="font-semibold text-gold">${cash(eff.price)}</span> <s class="text-mist">${cash(eff.was)}</s>`
+      : `${start.label} · ${cash(start.price)}`;
   return `<div>
     <p class="mb-3 font-micro text-[10px] font-semibold tracking-[0.18em] text-mist">EN LA TIENDA</p>
     <div class="overflow-hidden rounded-xl bg-night">
       <div class="relative">
         <img src="${p.image}" alt="" class="h-[180px] w-full object-cover" />
         ${p.available ? "" : `<span class="absolute left-3 top-3 rounded-full bg-[#c43b3b] px-2 py-0.5 font-micro text-[10px] font-semibold text-cream">Agotado</span>`}
+        ${badge ? `<span class="absolute left-3 top-3 rounded-full bg-gold px-2 py-0.5 font-micro text-[10px] font-semibold text-goldink">${badge}</span>` : ""}
+        ${p.available && p.lowStock ? `<span class="absolute right-3 top-3 rounded-full bg-[#c43b3b] px-2 py-0.5 font-micro text-[10px] font-semibold text-cream">Quedan pocos</span>` : ""}
       </div>
       <div class="p-4">
         <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-mist">${(p.house || "Casa").toUpperCase()}</p>
         <p class="mt-1 font-poster text-[22px] leading-tight text-cream">${p.name || "Sin nombre"}</p>
-        <p class="mt-2 font-app text-[13px] text-mist">${p.available ? `${start?.label || "—"} · ${start ? cash(start.price) : "—"}` : "Hoy no hay"}</p>
-        <div class="mt-4 flex h-11 items-center justify-center rounded-md bg-cream font-micro text-[12px] font-semibold text-night">${p.available ? "Sumar" : "Hoy no hay"}</div>
+        <p class="mt-2 font-app text-[13px] tabular-nums text-mist">${priceLine}</p>
+        <div class="mt-4 flex h-11 items-center justify-center rounded-md font-micro text-[12px] font-semibold ${eff.was ? "bg-gold text-goldink" : "bg-cream text-night"}">${p.available ? "Sumar" : "Hoy no hay"}</div>
       </div>
     </div>
     <div class="mt-3 grid grid-cols-2 gap-2">
       ${
         p.sizes.length
           ? p.sizes
-              .map(
-                (s) => `<div class="rounded-lg bg-night px-2.5 py-2.5 text-center">
+              .map((s) => {
+                const e = effectivePrice(s, p.available ? promo : null);
+                return `<div class="rounded-lg bg-night px-2.5 py-2.5 text-center">
             <p class="font-micro text-[10px] text-mist">${s.label}</p>
-            <p class="mt-0.5 font-poster text-[17px] tabular-nums text-cream">${cash(s.price)}</p>
-          </div>`,
-              )
+            <p class="mt-0.5 font-poster text-[17px] tabular-nums ${e.was ? "text-gold" : "text-cream"}">${cash(e.price)}</p>
+            ${e.was ? `<p class="font-app text-[11px] tabular-nums text-mist line-through">${cash(e.was)}</p>` : ""}
+          </div>`;
+              })
               .join("")
           : `<p class="col-span-2 font-app text-xs text-mist">Sin medidas</p>`
       }
@@ -338,6 +372,7 @@ function perfumeFromForm(form: HTMLFormElement): Perfume {
     moods: data.getAll("moods").map(String) as Mood[],
     image: String(data.get("image") || IMAGES[0]),
     available: data.get("available") === "on",
+    lowStock: data.get("lowStock") === "on",
     related: data.getAll("related").map(String).filter(Boolean).slice(0, RELATED_MAX),
     sizes,
   };
@@ -347,6 +382,11 @@ function paintLiveCard() {
   const form = $("[data-modal-form]") as HTMLFormElement | null;
   const live = form?.querySelector("[data-live-card]");
   if (!form || !live) return;
+  const kind = (form.querySelector('[name="form_kind"]') as HTMLInputElement | null)?.value;
+  if (kind === "promo") {
+    live.innerHTML = promoPreview(promoFromForm(form));
+    return;
+  }
   live.innerHTML = storeCard(perfumeFromForm(form));
 }
 
@@ -506,6 +546,7 @@ function paint() {
   paintPerfumes();
   paintCombos();
   paintCollections();
+  paintPromos();
   paintStore();
 }
 
@@ -514,6 +555,24 @@ function measurePills(p: Perfume) {
   return `<span class="flex flex-wrap gap-1">${p.sizes
     .map((s) => `<span class="rounded-full bg-white/[0.06] px-2 py-0.5 font-micro text-[10px] tracking-[0.06em] text-mist">${s.label}</span>`)
     .join("")}</span>`;
+}
+
+function promoTag(p: Perfume) {
+  const promo = promoOf(p.slug);
+  if (!promo || !p.available) return "";
+  return `<span class="ml-1.5 inline-block rounded-full bg-gold px-2 py-0.5 align-middle font-micro text-[9px] font-semibold text-goldink">${discountText(promo, state.store.symbol)}</span>`;
+}
+
+function priceCell(p: Perfume) {
+  const start = smallestSize(p);
+  const eff = effectivePrice(start, p.available ? promoOf(p.slug) : null);
+  if (!eff.was) return cash(start.price);
+  return `<span class="text-gold">${cash(eff.price)}</span> <s class="font-app text-[12px] text-mist">${cash(eff.was)}</s>`;
+}
+
+function lowToggle(p: Perfume) {
+  const on = p.lowStock === true;
+  return `<button type="button" data-low="${p.slug}" title="Quedan pocos" class="cursor-pointer rounded-full px-2.5 py-1 font-micro text-[10px] font-semibold ${on ? "bg-[#c43b3b] text-cream" : "text-mist ring-1 ring-white/15 hover:text-cream"}" aria-pressed="${on}">${on ? "Pocos" : "No"}</button>`;
 }
 
 function stockSwitch(p: Perfume) {
@@ -535,18 +594,17 @@ function paintPerfumes() {
   }
   const cards = `<div class="grid gap-3 md:hidden">${rows
     .map((p) => {
-      const start = smallestSize(p);
       return `<article class="flex gap-3 rounded-2xl bg-lift p-3">
         <button type="button" data-preview="${p.slug}" class="shrink-0 cursor-pointer">
           <img src="${p.image}" alt="" class="h-[88px] w-16 rounded-lg object-cover" />
         </button>
         <div class="min-w-0 flex-1">
           <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-mist">${p.house.toUpperCase()}</p>
-          <button type="button" data-preview="${p.slug}" class="mt-0.5 block text-left font-poster text-lg leading-tight text-cream">${p.name}</button>
-          <p class="mt-1 font-poster text-[15px] tabular-nums text-cream">${cash(start.price)}</p>
+          <button type="button" data-preview="${p.slug}" class="mt-0.5 block text-left font-poster text-lg leading-tight text-cream">${p.name}${promoTag(p)}</button>
+          <p class="mt-1 font-poster text-[15px] tabular-nums text-cream">${priceCell(p)}</p>
           <div class="mt-2">${measurePills(p)}</div>
           <div class="mt-3 flex items-center justify-between">
-            ${stockSwitch(p)}
+            <span class="flex items-center gap-2">${stockSwitch(p)}${lowToggle(p)}</span>
             ${btnGhost("Editar", `data-edit="perfume" data-slug="${p.slug}"`)}
           </div>
         </div>
@@ -561,25 +619,26 @@ function paintPerfumes() {
           <th class="px-3 py-3 font-medium">Desde</th>
           <th class="px-3 py-3 font-medium">Medidas</th>
           <th class="px-3 py-3 font-medium">Stock</th>
+          <th class="px-3 py-3 font-medium">Pocos</th>
           <th class="px-5 py-3 font-medium"></th>
         </tr>
       </thead>
       <tbody>${rows
         .map((p) => {
-          const start = smallestSize(p);
           return `<tr class="border-b border-white/5 hover:bg-white/[0.03]">
             <td class="px-5 py-3">
               <button type="button" data-preview="${p.slug}" class="flex cursor-pointer items-center gap-3 text-left">
                 <img src="${p.image}" alt="" class="h-14 w-11 rounded-md object-cover" />
                 <span>
                   <span class="block font-micro text-[10px] font-semibold tracking-[0.12em] text-mist">${p.house.toUpperCase()}</span>
-                  <span class="mt-0.5 block font-poster text-[17px] leading-tight text-cream">${p.name}</span>
+                  <span class="mt-0.5 block font-poster text-[17px] leading-tight text-cream">${p.name}${promoTag(p)}</span>
                 </span>
               </button>
             </td>
-            <td class="px-3 py-3 font-poster text-[17px] tabular-nums text-cream">${cash(start.price)}</td>
+            <td class="px-3 py-3 font-poster text-[17px] tabular-nums text-cream">${priceCell(p)}</td>
             <td class="px-3 py-3">${measurePills(p)}</td>
             <td class="px-3 py-3">${stockSwitch(p)}</td>
+            <td class="px-3 py-3">${lowToggle(p)}</td>
             <td class="px-5 py-3 text-right">${btnGhost("Editar", `data-edit="perfume" data-slug="${p.slug}"`)}</td>
           </tr>`;
         })
@@ -747,6 +806,7 @@ function readStoreForm(form: HTMLFormElement): StoreData {
     minOrder: num("minOrder", s.minOrder),
     shippingLocal: num("shippingLocal", s.shippingLocal),
     shippingUpcountry: num("shippingUpcountry", s.shippingUpcountry),
+    freeShippingFrom: Math.max(0, num("freeShippingFrom", s.freeShippingFrom)),
     symbol: str("symbol", s.symbol).trim() || s.symbol,
     symbolPlace: place as SymbolPlace,
     socials: socials.length ? socials : s.socials,
@@ -886,6 +946,10 @@ function paneEnvios(s: StoreData) {
       ${field("Qué les decís del envío", area("coverage", s.coverage, 3))}
       ${field("Nota bajo el precio", input("shippingNote", s.shippingNote))}
       <div>
+        ${field(`Envío gratis desde (${s.symbol})`, input("freeShippingFrom", String(s.freeShippingFrom || 0), 'type="number" min="0" step="1"'))}
+        <p class="mt-1.5 font-app text-[12px] text-mist">En el carrito se ve "Te faltan C$ 120 para envío gratis". 0 = no se ofrece.</p>
+      </div>
+      <div>
         <p class="font-app text-[13px] text-mist">Ciudades del checkout</p>
         <div class="mt-2 flex flex-wrap gap-2">
           ${
@@ -1013,6 +1077,339 @@ function refreshStorePreviews() {
   if (cashLive && cashNote !== undefined) cashLive.textContent = cashNote || "si estamos en tu zona";
 }
 
+
+const PROMO_KINDS: { value: PromoKind; label: string }[] = [
+  { value: "percent", label: "%" },
+  { value: "amount", label: "menos" },
+  { value: "price", label: "Precio fijo" },
+];
+
+function statusPill(p: Promotion) {
+  const st = promoStatus(p);
+  if (st === "active") {
+    return `<span class="inline-flex items-center gap-1.5 rounded-full bg-gold px-2.5 py-1 font-micro text-[10px] font-semibold text-goldink"><span class="h-1.5 w-1.5 rounded-full bg-goldink"></span>${endsToday(p) ? "Termina hoy" : "Activa"}</span>`;
+  }
+  const label = st === "scheduled" ? "Programada" : st === "paused" ? "Pausada" : "Terminada";
+  return `<span class="inline-flex rounded-full px-2.5 py-1 font-micro text-[10px] font-semibold text-mist ring-1 ring-white/15">${label}</span>`;
+}
+
+function promoTimeCell(p: Promotion) {
+  const st = promoStatus(p);
+  if (st === "scheduled") return `<span class="font-app text-[12px] text-mist">Empieza ${shortDate(p.startsAt)}</span>`;
+  if (st === "ended") return `<span class="font-app text-[12px] text-mist">Terminó ${shortDate(p.endsAt)}</span>`;
+  if (!p.endsAt) return `<span class="font-app text-[12px] text-mist">Sin fin</span>`;
+  const left = Math.round((1 - progress(p)) * 100);
+  return `<div class="h-1.5 w-28 overflow-hidden rounded-full bg-white/10" title="Tiempo que queda"><div class="h-full rounded-full ${st === "paused" ? "bg-white/30" : "bg-gold"}" style="width:${left}%"></div></div>
+    <span class="mt-1.5 block font-app text-[12px] tabular-nums text-mist">Termina ${shortDate(p.endsAt)} · quedan ${timeLeft(p)}</span>`;
+}
+
+function promoDiscountCell(p: Promotion, perfume?: Perfume) {
+  const start = perfume ? smallestSize(perfume) : null;
+  const eff = start ? effectivePrice(start, { ...p, enabled: true }) : null;
+  const sample =
+    start && eff?.was
+      ? `<span class="mt-0.5 block font-app text-[12px] tabular-nums text-mist">${start.label}: <s>${cash(eff.was)}</s> ${cash(eff.price)}</span>`
+      : "";
+  return `<span class="block font-poster text-[16px] text-cream">${discountText(p, state.store.symbol)}</span>${sample}`;
+}
+
+function promoSizesCell(p: Promotion, perfume?: Perfume) {
+  const all = !p.sizeKeys || (perfume ? p.sizeKeys.length >= perfume.sizes.length : false);
+  const label = all ? "Todas" : (p.sizeKeys || []).map((k) => perfume?.sizes.find((s) => s.key === k)?.label ?? k).join(" · ");
+  return `<span class="rounded-full bg-white/[0.06] px-2 py-0.5 font-micro text-[10px] tracking-[0.06em] text-mist">${label || "—"}</span>`;
+}
+
+function promoSwitch(p: Promotion) {
+  const on = p.enabled;
+  return `<button type="button" data-promo-toggle="${p.id}" class="flex h-7 w-12 cursor-pointer items-center rounded-full p-0.5 transition-colors ${on ? "bg-cream" : "bg-white/15"}" aria-pressed="${on}" aria-label="${on ? "Encendida" : "Pausada"}">
+    <span class="block h-6 w-6 rounded-full bg-night transition-transform ${on ? "translate-x-5" : "translate-x-0"}"></span>
+  </button>`;
+}
+
+function sortedPromos() {
+  const rank: Record<PromoStatus, number> = { active: 0, scheduled: 1, paused: 2, ended: 3 };
+  return [...state.promotions].sort((a, b) => {
+    const d = rank[promoStatus(a)] - rank[promoStatus(b)];
+    if (d) return d;
+    return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+  });
+}
+
+function paintPromos() {
+  const list = $("[data-list='promos']");
+  const stats = $("[data-promo-stats]");
+  if (!list || !stats) return;
+  const now = Date.now();
+  const active = state.promotions.filter((p) => promoStatus(p, now) === "active");
+  const scheduled = state.promotions.filter((p) => promoStatus(p, now) === "scheduled");
+  const soon = active.filter((p) => p.endsAt && Date.parse(p.endsAt) - now < 24 * 60 * 60 * 1000);
+  const stat = (n: number, label: string, gold = false) =>
+    `<div class="rounded-xl bg-lift px-4 py-3"><p class="font-poster text-[24px] leading-none tabular-nums ${gold ? "text-gold" : "text-cream"}">${n}</p><p class="mt-1 font-micro text-[10px] font-semibold tracking-[0.12em] text-mist uppercase">${label}</p></div>`;
+  stats.innerHTML = `<div class="grid grid-cols-3 gap-2 md:max-w-[520px]">${stat(active.length, "Activas hoy", true)}${stat(scheduled.length, "Programadas")}${stat(soon.length, "Terminan en 24 h")}</div>`;
+
+  const rows = sortedPromos();
+  if (!rows.length) {
+    list.innerHTML = `<p class="rounded-2xl bg-lift px-5 py-10 text-center font-app text-sm text-mist">Todavía no hay ofertas. Creá una y se ve en la tienda al instante.</p>`;
+    return;
+  }
+  const perfumeOf = (p: Promotion) => state.perfumes.find((x) => x.slug === p.perfumeSlug);
+  const actions = (p: Promotion) =>
+    promoStatus(p) === "ended"
+      ? btnGhost("Repetir", `data-promo-repeat="${p.id}"`)
+      : btnGhost("Editar", `data-edit="promo" data-slug="${p.id}"`);
+
+  const cards = `<div class="grid gap-3 md:hidden">${rows
+    .map((p) => {
+      const perfume = perfumeOf(p);
+      const dim = promoStatus(p) === "ended" ? "opacity-60" : "";
+      return `<article class="flex gap-3 rounded-2xl bg-lift p-3 ${dim}">
+        <img src="${perfume?.image || ""}" alt="" class="h-[88px] w-16 shrink-0 rounded-lg object-cover" />
+        <div class="min-w-0 flex-1">
+          <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-mist">${(perfume?.house || "").toUpperCase()}</p>
+          <p class="mt-0.5 font-poster text-lg leading-tight text-cream">${perfume?.name || p.perfumeSlug}</p>
+          <div class="mt-1.5">${promoDiscountCell(p, perfume)}</div>
+          <div class="mt-2">${promoTimeCell(p)}</div>
+          <div class="mt-3 flex items-center justify-between gap-2">${statusPill(p)}<span class="flex items-center gap-2">${promoSwitch(p)}${actions(p)}</span></div>
+        </div>
+      </article>`;
+    })
+    .join("")}</div>`;
+
+  const table = `<div class="hidden overflow-hidden rounded-2xl ring-1 ring-white/10 md:block">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="border-b border-white/10 font-micro text-[10px] font-semibold tracking-[0.14em] text-mist">
+          <th class="px-5 py-3 font-medium">Producto</th>
+          <th class="px-3 py-3 font-medium">Rebaja</th>
+          <th class="px-3 py-3 font-medium">Medidas</th>
+          <th class="px-3 py-3 font-medium">Tiempo</th>
+          <th class="px-3 py-3 font-medium">Estado</th>
+          <th class="px-3 py-3 font-medium"></th>
+          <th class="px-5 py-3 font-medium"></th>
+        </tr>
+      </thead>
+      <tbody>${rows
+        .map((p) => {
+          const perfume = perfumeOf(p);
+          const dim = promoStatus(p) === "ended" ? "opacity-60" : "";
+          return `<tr class="border-b border-white/5 hover:bg-white/[0.03] ${dim}">
+            <td class="px-5 py-3">
+              <span class="flex items-center gap-3">
+                <img src="${perfume?.image || ""}" alt="" class="h-14 w-11 rounded-md object-cover" />
+                <span>
+                  <span class="block font-micro text-[10px] font-semibold tracking-[0.12em] text-mist">${(perfume?.house || "").toUpperCase()}</span>
+                  <span class="mt-0.5 block font-poster text-[17px] leading-tight text-cream">${perfume?.name || p.perfumeSlug}</span>
+                  ${p.title ? `<span class="block font-app text-[12px] text-mist">${p.title}</span>` : ""}
+                </span>
+              </span>
+            </td>
+            <td class="px-3 py-3">${promoDiscountCell(p, perfume)}</td>
+            <td class="px-3 py-3">${promoSizesCell(p, perfume)}</td>
+            <td class="px-3 py-3">${promoTimeCell(p)}</td>
+            <td class="px-3 py-3">${statusPill(p)}</td>
+            <td class="px-3 py-3">${promoSwitch(p)}</td>
+            <td class="px-5 py-3 text-right">${actions(p)}</td>
+          </tr>`;
+        })
+        .join("")}
+      </tbody>
+    </table>
+  </div>`;
+  list.innerHTML = cards + table;
+}
+
+function promoSizeRows(perfume: Perfume | undefined, promo: Promotion) {
+  if (!perfume) return `<p class="font-app text-[13px] text-mist">Elegí un perfume.</p>`;
+  const isPrice = promo.kind === "price";
+  return perfume.sizes
+    .map((s) => {
+      const on = !promo.sizeKeys || promo.sizeKeys.includes(s.key);
+      const fixed = promo.prices?.[s.key];
+      return `<div class="grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl bg-night px-3 py-2.5 ring-1 ring-white/10">
+        <label class="flex cursor-pointer items-center gap-3">
+          <input type="checkbox" name="size_keys" value="${s.key}" ${on ? "checked" : ""} class="accent-amber" />
+          <span class="font-app text-[14px] text-cream">${s.label}</span>
+          <span class="font-app text-[12px] tabular-nums text-mist">${cash(s.price)}</span>
+        </label>
+        <span data-price-fields class="${isPrice ? "" : "hidden"}">
+          <input name="price_${s.key}" type="number" min="1" step="1" placeholder="${s.price}" value="${typeof fixed === "number" ? fixed : ""}" class="h-9 w-24 rounded-lg bg-lift px-2 text-right font-app text-[14px] tabular-nums outline-none ring-1 ring-white/10" />
+        </span>
+      </div>`;
+    })
+    .join("");
+}
+
+function promoPreview(promo: Promotion) {
+  const perfume = state.perfumes.find((p) => p.slug === promo.perfumeSlug);
+  if (!perfume) return `<p class="font-app text-[13px] text-mist">Elegí un perfume para ver cómo queda.</p>`;
+  const forced: Promotion = { ...promo, enabled: true };
+  const best = perfume.sizes.reduce((m, s) => {
+    const e = effectivePrice(s, forced);
+    return Math.max(m, e.was ? e.was - e.price : 0);
+  }, 0);
+  return (
+    storeCard(perfume, forced) +
+    `<p class="mt-3 font-app text-[12px] text-mist">${best > 0 ? `Se ahorra hasta ${cash(best)}.` : "Así como está, no baja ningún precio."}</p>`
+  );
+}
+
+function promoFromForm(form: HTMLFormElement): Promotion {
+  const data = new FormData(form);
+  const perfumeSlug = String(data.get("perfumeSlug") || "");
+  const perfume = state.perfumes.find((p) => p.slug === perfumeSlug);
+  const kindRaw = String(data.get("promo_kind") || "percent");
+  const kind: PromoKind = kindRaw === "amount" || kindRaw === "price" ? kindRaw : "percent";
+  const keys = data.getAll("size_keys").map(String);
+  const all = perfume ? keys.length >= perfume.sizes.length : false;
+  const prices: Record<string, number> = {};
+  perfume?.sizes.forEach((s) => {
+    const v = Number(data.get(`price_${s.key}`));
+    if (Number.isFinite(v) && v > 0) prices[s.key] = Math.floor(v);
+  });
+  const existing = String(data.get("id") || "");
+  const prev = state.promotions.find((p) => p.id === existing);
+  return {
+    id: existing || newPromoId(),
+    perfumeSlug,
+    title: String(data.get("title") || "").trim(),
+    kind,
+    value: Number(data.get("value")) || 0,
+    prices: kind === "price" ? prices : undefined,
+    sizeKeys: all ? null : keys,
+    startsAt: fromLocalInput(String(data.get("startsAt") || "")) || new Date().toISOString(),
+    endsAt: fromLocalInput(String(data.get("endsAt") || "")),
+    showCountdown: data.get("showCountdown") === "on",
+    enabled: data.get("enabled") === "on",
+    createdAt: prev?.createdAt || new Date().toISOString(),
+  };
+}
+
+function promoModal(p?: Promotion) {
+  const editing = Boolean(p?.id);
+  const first = state.perfumes.find((x) => x.available) ?? state.perfumes[0];
+  const week = spanDates("week");
+  const draft: Promotion = p ?? {
+    id: "",
+    perfumeSlug: first?.slug || "",
+    title: "",
+    kind: "percent",
+    value: 20,
+    sizeKeys: null,
+    startsAt: week.startsAt,
+    endsAt: week.endsAt,
+    showCountdown: true,
+    enabled: true,
+    createdAt: new Date().toISOString(),
+  };
+  const perfume = state.perfumes.find((x) => x.slug === draft.perfumeSlug);
+  const kindChips = PROMO_KINDS.map(
+    (k) => `<label class="cursor-pointer">
+      <input type="radio" name="promo_kind" value="${k.value}" ${draft.kind === k.value ? "checked" : ""} class="peer sr-only" />
+      <span class="block rounded-full px-3.5 py-2 font-micro text-[11px] font-semibold text-mist ring-1 ring-white/15 peer-checked:bg-cream peer-checked:text-night peer-checked:ring-cream">${k.value === "amount" ? `${state.store.symbol} menos` : k.label}</span>
+    </label>`,
+  ).join("");
+  const spans: [string, string][] = [
+    ["today", "Hoy"],
+    ["weekend", "Fin de semana"],
+    ["week", "7 días"],
+    ["forever", "Sin fin"],
+  ];
+  openModal(`
+    <div class="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-4">
+      <div>
+        <p class="font-micro text-[11px] font-semibold tracking-[0.16em] text-mist">${editing ? "EDITAR OFERTA" : "NUEVA OFERTA"}</p>
+        <h2 class="mt-1 font-poster text-[28px] leading-none text-cream">${editing ? p?.title || perfume?.name || "Oferta" : "Crear oferta"}</h2>
+      </div>
+      <button type="button" data-modal-close class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-mist ring-1 ring-white/20 hover:text-cream">×</button>
+    </div>
+    <div class="grid min-h-0 flex-1 overflow-hidden md:grid-cols-[260px_minmax(0,1fr)]">
+      <aside class="min-h-0 overflow-y-auto px-6 pb-6">
+        <div data-live-card>${promoPreview(draft)}</div>
+      </aside>
+      <div class="min-h-0 overflow-y-auto border-t border-white/10 px-6 pb-6 md:border-l md:border-t-0">
+        <div class="flex flex-col gap-7">
+          <div>
+            ${sectionKicker("QUÉ SE REBAJA")}
+            <div class="mt-3">${field(
+              "Producto",
+              select(
+                "perfumeSlug",
+                state.perfumes.map((x) => ({ value: x.slug, label: `${x.name} · ${x.house}${x.available ? "" : " (agotado)"}` })),
+                draft.perfumeSlug,
+              ),
+            )}</div>
+            <div class="mt-3 grid gap-3 sm:grid-cols-[1fr_140px]">
+              <div>
+                <p class="font-app text-[13px] text-mist">Tipo</p>
+                <div class="mt-1.5 flex flex-wrap gap-2">${kindChips}</div>
+              </div>
+              <div data-value-field class="${draft.kind === "price" ? "hidden" : ""}">${field("Cuánto", input("value", String(draft.value || ""), 'type="number" min="1" step="1"'))}</div>
+            </div>
+            <p class="mt-4 font-app text-[13px] text-mist">Medidas que entran</p>
+            <div data-promo-sizes class="mt-2 grid gap-2">${promoSizeRows(perfume, draft)}</div>
+            <p class="mt-2 font-app text-[12px] text-mist">Con precio fijo, escribí el precio de oferta de cada medida marcada. Si queda vacío o no baja, esa medida no entra.</p>
+          </div>
+          <div>
+            ${sectionKicker("CUÁNTO DURA")}
+            <div class="mt-3 flex flex-wrap gap-2">${spans
+              .map(
+                ([v, l]) =>
+                  `<button type="button" data-promo-span="${v}" class="cursor-pointer rounded-full px-3.5 py-2 font-micro text-[11px] font-semibold text-cream ring-1 ring-white/20 hover:bg-white/10">${l}</button>`,
+              )
+              .join("")}</div>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              ${field("Desde", input("startsAt", toLocalInput(draft.startsAt), 'type="datetime-local" required'))}
+              ${field("Hasta (vacío = sin fin)", input("endsAt", toLocalInput(draft.endsAt), 'type="datetime-local"'))}
+            </div>
+            <p class="mt-2 font-app text-[12px] text-mist">Hora de tu celular. Cuando termina, el precio vuelve solo.</p>
+          </div>
+          <div>
+            ${sectionKicker("CÓMO SE VE")}
+            <div class="mt-3">${field("Etiqueta (opcional)", input("title", draft.title, 'placeholder="Semana de Le Beau" maxlength="32"'))}</div>
+            <p class="mt-1.5 font-app text-[12px] text-mist">Si va vacía, el badge dice el porcentaje. El día que termina, dice “Hoy”.</p>
+            <div class="mt-4">${switchField("showCountdown", draft.showCountdown, "Cuenta regresiva en la ficha", "“Termina en 5 d 3 h”. Mueve más que la fecha. Solo si hay fin.")}</div>
+            <div class="mt-2">${switchField("enabled", draft.enabled, "Encendida", "Apagada = pausada. No se borra.")}</div>
+          </div>
+        </div>
+        <input type="hidden" name="id" value="${draft.id}" />
+        <input type="hidden" name="form_kind" value="promo" />
+        <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-white/10 pt-5">
+          <button type="submit" class="flex h-11 cursor-pointer items-center rounded-lg bg-cream px-7 font-micro text-[12px] font-semibold text-night hover:opacity-90">Guardar</button>
+          <span class="font-app text-[12px] text-mist">Se ve en la tienda al instante</span>
+          ${editing ? `<button type="button" data-delete="promo" class="ml-auto cursor-pointer font-micro text-[12px] font-semibold text-[#e05a5a]">Quitar</button>` : ""}
+        </div>
+      </div>
+    </div>`);
+}
+
+function togglePromo(id: string) {
+  const p = state.promotions.find((x) => x.id === id);
+  if (!p) return;
+  p.enabled = !p.enabled;
+  let paused = 0;
+  if (p.enabled) {
+    state.promotions.forEach((x) => {
+      if (x.enabled && overlaps(x, p)) {
+        x.enabled = false;
+        paused += 1;
+      }
+    });
+  }
+  persist();
+  const name = state.perfumes.find((x) => x.slug === p.perfumeSlug)?.name || "Oferta";
+  toast(p.enabled ? (paused ? `${name}: encendida. Se pausó la otra que se cruzaba.` : `${name}: oferta encendida`) : `${name}: oferta pausada`);
+  paint();
+}
+
+function toggleLow(slug: string) {
+  const p = state.perfumes.find((x) => x.slug === slug);
+  if (!p) return;
+  p.lowStock = !p.lowStock;
+  persist();
+  toast(p.lowStock ? `${p.name}: avisa que quedan pocos` : `${p.name}: sin aviso de pocos`);
+  paint();
+}
+
 function perfumeModal(p?: Perfume) {
   const moods = p?.moods ?? [];
   const sizes = p?.sizes?.length ? p.sizes : [normalizeSize({ key: "5", price: 0, kind: "ml", ml: 5 })];
@@ -1071,6 +1468,7 @@ function perfumeModal(p?: Perfume) {
             <button type="button" data-size-add="ml" class="mt-3 cursor-pointer rounded-full px-3.5 py-2 font-micro text-[11px] font-semibold text-cream ring-1 ring-white/20 hover:bg-white/10">Otra medida</button>
             ${bottleBlock(sizes.find(isBottle))}
             <div class="mt-5">${switchField("available", p?.available !== false, "En la tienda", "Apagado = agotado. No se suma al carrito.")}</div>
+            <div class="mt-2">${switchField("lowStock", p?.lowStock === true, "Quedan pocos", "Avisa en la ficha y en la tarjeta, sin número. Apagalo cuando llegue más.")}</div>
           </div>
           <div>
             ${sectionKicker("SI TE GUSTA ESTE")}
@@ -1293,6 +1691,22 @@ function bind() {
     closeModal();
   });
   document.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement;
+    const form = t.closest<HTMLFormElement>("[data-modal-form]");
+    if (!form || (form.querySelector('[name="form_kind"]') as HTMLInputElement | null)?.value !== "promo") return;
+    if (t.name === "perfumeSlug") {
+      const box = form.querySelector("[data-promo-sizes]");
+      const draft = promoFromForm(form);
+      const perfume = state.perfumes.find((x) => x.slug === draft.perfumeSlug);
+      if (box) box.innerHTML = promoSizeRows(perfume, { ...draft, sizeKeys: null, prices: undefined });
+    }
+    if (t.name === "promo_kind") {
+      const isPrice = t.value === "price";
+      form.querySelectorAll("[data-price-fields]").forEach((el) => el.classList.toggle("hidden", !isPrice));
+      form.querySelector("[data-value-field]")?.classList.toggle("hidden", isPrice);
+    }
+  });
+  document.addEventListener("change", (e) => {
     const t = e.target as HTMLSelectElement;
     if (!t.matches("[data-related-add]") || !t.value) return;
     const form = t.closest("form");
@@ -1332,12 +1746,51 @@ function bind() {
       if (kind === "perfume") perfumeModal();
       if (kind === "combo") comboModal();
       if (kind === "collection") collectionModal();
+      if (kind === "promo") promoModal();
     }
 
     const stock = t.closest<HTMLElement>("[data-stock]");
     if (stock) {
       e.preventDefault();
       toggleStock(stock.getAttribute("data-stock") || "");
+      return;
+    }
+
+    const low = t.closest<HTMLElement>("[data-low]");
+    if (low) {
+      e.preventDefault();
+      toggleLow(low.getAttribute("data-low") || "");
+      return;
+    }
+
+    const promoToggle = t.closest<HTMLElement>("[data-promo-toggle]");
+    if (promoToggle) {
+      e.preventDefault();
+      togglePromo(promoToggle.getAttribute("data-promo-toggle") || "");
+      return;
+    }
+
+    const repeat = t.closest<HTMLElement>("[data-promo-repeat]");
+    if (repeat) {
+      const src = state.promotions.find((x) => x.id === repeat.getAttribute("data-promo-repeat"));
+      if (!src) return;
+      const week = spanDates("week");
+      promoModal({ ...src, id: "", startsAt: week.startsAt, endsAt: week.endsAt, enabled: true, createdAt: new Date().toISOString() });
+      return;
+    }
+
+    const span = t.closest<HTMLElement>("[data-promo-span]");
+    if (span) {
+      e.preventDefault();
+      const form = $("[data-modal-form]") as HTMLFormElement | null;
+      if (!form) return;
+      const key = span.getAttribute("data-promo-span") as "today" | "weekend" | "week" | "forever";
+      const dates = spanDates(key);
+      const from = form.querySelector<HTMLInputElement>('[name="startsAt"]');
+      const to = form.querySelector<HTMLInputElement>('[name="endsAt"]');
+      if (from) from.value = toLocalInput(dates.startsAt);
+      if (to) to.value = toLocalInput(dates.endsAt);
+      paintLiveCard();
       return;
     }
 
@@ -1354,6 +1807,7 @@ function bind() {
       if (kind === "perfume") perfumeModal(state.perfumes.find((p) => p.slug === slug));
       if (kind === "combo") comboModal(state.combos.find((c) => c.slug === slug));
       if (kind === "collection") collectionModal(state.collections.find((c) => c.slug === slug));
+      if (kind === "promo") promoModal(state.promotions.find((x) => x.id === slug));
     }
 
     const pane = t.closest<HTMLElement>("[data-store-pane]");
@@ -1539,6 +1993,20 @@ function bind() {
     if (del) {
       e.preventDefault();
       const kind = del.getAttribute("data-delete");
+      if (kind === "promo") {
+        const id = (del.closest("form")?.querySelector('[name="id"]') as HTMLInputElement | null)?.value;
+        if (!id) return;
+        void (async () => {
+          const ok = await ask("¿Quitar esta oferta?", "El perfume vuelve a su precio de lista. Si solo querés pararla un rato, mejor apagala.", "Quitar");
+          if (!ok) return;
+          state.promotions = state.promotions.filter((x) => x.id !== id);
+          persist();
+          closeModal();
+          toast("Oferta quitada");
+          paint();
+        })();
+        return;
+      }
       const slug = (del.closest("form")?.querySelector('[name="slug"]') as HTMLInputElement | null)?.value;
       if (!slug) return;
       if (kind === "perfume" && state.combos.some((c) => c.items.some((i) => i.slug === slug))) {
@@ -1568,6 +2036,57 @@ function bind() {
     const form = e.currentTarget as HTMLFormElement;
     const data = new FormData(form);
     const kind = String(data.get("form_kind") || "");
+
+    if (kind === "promo") {
+      const promo = promoFromForm(form);
+      const perfume = state.perfumes.find((x) => x.slug === promo.perfumeSlug);
+      if (!perfume) {
+        toast("Elegí un perfume");
+        return;
+      }
+      if (promo.kind === "percent" && (promo.value < 1 || promo.value > 99)) {
+        toast("El porcentaje va de 1 a 99");
+        return;
+      }
+      if (promo.kind === "amount" && promo.value < 1) {
+        toast("Poné cuánto se descuenta");
+        return;
+      }
+      if (promo.sizeKeys && !promo.sizeKeys.length) {
+        toast("Marcá al menos una medida");
+        return;
+      }
+      if (!perfume.sizes.some((s) => effectivePrice(s, { ...promo, enabled: true }).was)) {
+        toast("Así como está, no baja ningún precio");
+        return;
+      }
+      if (promo.endsAt && Date.parse(promo.endsAt) <= Date.parse(promo.startsAt)) {
+        toast("El fin tiene que ser después del inicio");
+        return;
+      }
+      const clash = promo.enabled ? state.promotions.filter((x) => x.enabled && overlaps(x, promo)) : [];
+      void (async () => {
+        if (clash.length) {
+          const ok = await ask(
+            `Ya hay una oferta para ${perfume.name}`,
+            "Se cruza en fechas con esta. Si guardás, la otra se pausa: no se suman descuentos.",
+            "Guardar y pausar la otra",
+          );
+          if (!ok) return;
+          clash.forEach((x) => {
+            x.enabled = false;
+          });
+        }
+        const i = state.promotions.findIndex((x) => x.id === promo.id);
+        if (i >= 0) state.promotions[i] = promo;
+        else state.promotions.push(promo);
+        persist();
+        closeModal();
+        toast(promo.title ? `${promo.title} guardada` : `Oferta de ${perfume.name} guardada`);
+        paint();
+      })();
+      return;
+    }
 
     if (kind === "perfume" || form.querySelector("[data-size-rows]")) {
       const perfume = perfumeFromForm(form);
@@ -1687,6 +2206,7 @@ function bind() {
 function boot() {
   if (!$("[data-admin]")) return;
   bind();
+  persist();
   if (isIn()) openApp(true);
 }
 

@@ -2,6 +2,7 @@
 import { smallestSize, worldLabel, type Perfume } from "../data/catalog";
 import { money } from "../lib/money";
 import { perfumePayload } from "../lib/payload";
+import { store } from "../data/config";
 
 interface Props {
   perfume: Perfume;
@@ -28,12 +29,14 @@ const payload = JSON.stringify(perfumePayload(perfume));
     >
       Agotado
     </span>
+    <span data-promo-badge class="absolute left-2 top-2 hidden rounded-full bg-gold px-2 py-0.5 font-micro text-[10px] font-semibold text-goldink">Oferta</span>
+    <span data-low-badge class="absolute left-2 bottom-2 hidden rounded-full bg-[#c43b3b] px-2 py-0.5 font-micro text-[10px] font-semibold text-cream">Quedan pocos</span>
   </a>
   <p class="font-micro text-[10px] font-semibold tracking-[0.12em] text-amber">{perfume.house.toUpperCase()}</p>
   <a href={`/perfume/${perfume.slug}`} class="min-h-[2.5rem] font-poster text-xl leading-tight text-cream">{perfume.name}</a>
   <div class="flex items-center justify-between gap-2">
-    <p data-price-line class="font-app text-xs text-mist">{start.label} · {money(start.price)}</p>
-    <p class="font-micro text-[10px] text-mist">{worldLabel[perfume.world]}</p>
+    <p data-price-line class="min-w-0 truncate font-app text-xs text-mist">{start.label} · {money(start.price)}</p>
+    <p data-world class="shrink-0 font-micro text-[10px] text-mist">{worldLabel[perfume.world]}</p>
   </div>
   {
     withAdd && (
@@ -45,9 +48,13 @@ const payload = JSON.stringify(perfumePayload(perfume));
         >
           Sumar
         </button>
-        <p data-soldout class:list={["mt-auto font-micro text-[11px] text-mist", perfume.available && "hidden"]}>
-          Hoy no hay
-        </p>
+        <a
+          data-soldout
+          href={`https://wa.me/${store.whatsapp}?text=${encodeURIComponent(`Hola, ¿cuándo vuelve ${perfume.name}?`)}`}
+          class:list={["mt-auto flex w-full items-center justify-center rounded-md bg-lift px-2.5 py-1.5 font-micro text-[11px] font-semibold text-mist ring-1 ring-white/10 md:h-11 md:text-[13px]", perfume.available && "hidden"]}
+        >
+          Avisame cuando vuelva
+        </a>
       </>
     )
   }

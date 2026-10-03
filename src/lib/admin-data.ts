@@ -7,11 +7,13 @@ import {
   type Gender,
   type Mood,
   type Perfume,
+  type Promotion,
   type SizeKey,
   type SizeOption,
   type World,
 } from "../data/catalog";
 import { store as seedStore } from "../data/config";
+import { spanDates } from "./promo";
 
 const KEY = "montclair-admin-v2";
 const GATE = "montclair-admin-in";
@@ -35,6 +37,8 @@ export type StoreData = {
   shippingNote: string;
   shippingLocal: number;
   shippingUpcountry: number;
+  /** Envío gratis desde este monto. 0 = nunca. */
+  freeShippingFrom: number;
   takingOrders: boolean;
   minOrder: number;
   socials: { name: string; href: string }[];
@@ -59,6 +63,7 @@ export type AdminState = {
   perfumes: Perfume[];
   combos: Combo[];
   collections: Collection[];
+  promotions: Promotion[];
   store: StoreData;
 };
 
@@ -150,6 +155,7 @@ function defaultStore(): StoreData {
     minOrder: 0,
     shippingLocal: 0,
     shippingUpcountry: 0,
+    freeShippingFrom: 0,
     symbol: "C$",
     symbolPlace: "before",
     payments: defaultPayments(),
@@ -219,11 +225,52 @@ function symbolFrom(store: Record<string, unknown>) {
   return "C$";
 }
 
+function seedPromotions(): Promotion[] {
+  const { startsAt, endsAt } = spanDates("week");
+  return [
+    {
+      id: "demo-semana-le-beau",
+      perfumeSlug: "le-beau-le-parfum",
+      title: "Semana de Le Beau",
+      kind: "percent",
+      value: 20,
+      sizeKeys: ["3", "5", "10"],
+      startsAt,
+      endsAt,
+      showCountdown: true,
+      enabled: true,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+export function normalizePromo(raw: Partial<Promotion>): Promotion | null {
+  if (!raw || typeof raw !== "object" || !raw.perfumeSlug) return null;
+  const kind: Promotion["kind"] = raw.kind === "amount" || raw.kind === "price" ? raw.kind : "percent";
+  const startsAt = raw.startsAt && !Number.isNaN(Date.parse(raw.startsAt)) ? raw.startsAt : new Date().toISOString();
+  const endsAt = raw.endsAt && !Number.isNaN(Date.parse(raw.endsAt)) ? raw.endsAt : null;
+  return {
+    id: String(raw.id || `promo-${Date.now().toString(36)}`),
+    perfumeSlug: String(raw.perfumeSlug),
+    title: String(raw.title || ""),
+    kind,
+    value: Number(raw.value) || 0,
+    prices: raw.prices && typeof raw.prices === "object" ? raw.prices : undefined,
+    sizeKeys: Array.isArray(raw.sizeKeys) ? raw.sizeKeys.map(String) : null,
+    startsAt,
+    endsAt,
+    showCountdown: raw.showCountdown !== false,
+    enabled: raw.enabled !== false,
+    createdAt: String(raw.createdAt || startsAt),
+  };
+}
+
 export function seed(): AdminState {
   return {
     perfumes: structuredClone(seedPerfumes),
     combos: structuredClone(seedCombos),
     collections: structuredClone(seedCollections),
+    promotions: seedPromotions(),
     store: defaultStore(),
   };
 }
@@ -251,11 +298,13 @@ export function loadState(): AdminState {
       minOrder: Number(parsed.store.minOrder) || 0,
       shippingLocal: Number(parsed.store.shippingLocal) || 0,
       shippingUpcountry: Number(parsed.store.shippingUpcountry) || 0,
+      freeShippingFrom: Number(parsed.store.freeShippingFrom) || 0,
     };
     parsed.perfumes = parsed.perfumes.map((p) => ({
       ...p,
       sizes: (p.sizes || []).map((s) => normalizeSize(s)),
       related: (p.related || []).slice(0, 2),
+      lowStock: p.lowStock === true,
     }));
     parsed.combos = parsed.combos.map((c) => {
       const items = Array.isArray(c.items) && c.items.length ? c.items : [];
@@ -278,6 +327,10 @@ export function loadState(): AdminState {
         intro: c.intro ?? match?.intro ?? "",
       } as Collection;
     });
+    const slugs = new Set(parsed.perfumes.map((p) => p.slug));
+    parsed.promotions = (Array.isArray(parsed.promotions) ? parsed.promotions : [])
+      .map((x) => normalizePromo(x))
+      .filter((x): x is Promotion => Boolean(x) && slugs.has((x as Promotion).perfumeSlug));
     return parsed;
   } catch {
     return seed();

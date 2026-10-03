@@ -203,3 +203,19 @@ En producción hace falta un Worker en Cloudflare (`wrangler deploy`) y `PUBLIC_
 La fase 1 está lista cuando Silvio, desde el celular, marca YSL Y como agotado y en menos de un minuto la ficha en montclair ya dice Agotado, sin abrir VS Code.
 
 La fase 4 está lista cuando un pedido por WhatsApp también aparece en el panel, con nombre, ciudad y qué ml pidieron.
+
+## Ofertas y urgencia (1 sep 2026)
+
+Pestaña **Ofertas** en el panel. Una oferta es una regla sobre un perfume por un tiempo; el precio de lista no se toca y vuelve solo al vencer.
+
+- Campos: perfume, tipo (`percent` / `amount` / `price`), valor o precio fijo por medida, medidas que entran, desde / hasta (vacío = sin fin), etiqueta, cuenta regresiva, encendida.
+- Estado calculado: programada · activa · pausada · terminada. Una activa por perfume; si dos se cruzan, el panel pausa la anterior.
+- El precio en oferta se calcula en un solo lugar, `src/lib/promo.ts` (`effectivePrice`), y lo usan panel, tarjeta, ficha, hoja de medidas, carrito y el mensaje de WhatsApp.
+- **Quedan pocos** es un switch manual del perfume (`lowStock`), sin número: la plataforma no lleva stock. Se prende en la ficha del perfume o en la columna "Pocos" de la lista.
+- **Envío gratis desde** (Tienda › Envíos, `freeShippingFrom`): el carrito muestra cuánto falta con una barra.
+- Salto de medida ("por C$ X más te llevas 10 ml"): se probó y se quitó, no gustó. La función `sizeJump` sigue en `promo.ts` por si se retoma con otra forma.
+- Color: dorado solo para ofertas; rojo sigue siendo Agotado / Quedan pocos.
+
+### Datos
+
+El API de Cloudflare (`worker/`, `schema.sql`, `wrangler.toml`) queda descartado. El destino es Supabase, una base para varias tiendas (`store_id` en todo, RLS por tienda). Mientras tanto la tienda lee el estado del panel desde `localStorage` (`src/lib/live.ts`), y ese estado ya tiene la forma de las tablas: `promotions`, `perfumes.low_stock`, `stores.settings.freeShippingFrom`.

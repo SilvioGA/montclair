@@ -40,6 +40,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
   <div
     data-perfume-page={JSON.stringify(payload)}
     data-selected-size={start.key}
+    data-available={perfume.available ? "1" : "0"}
   >
     <div class="flex h-[52px] items-center justify-between px-5 md:mx-auto md:h-auto md:max-w-[1280px] md:justify-start md:px-10 md:pt-8 md:pb-5">
       <BackLink href="/catalogo" label="Catálogo" list />
@@ -50,13 +51,13 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
     <div class="md:mx-auto md:grid md:max-w-[1280px] md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-20 md:px-10">
     <div class="relative aspect-square overflow-hidden bg-lift md:min-h-[640px] md:rounded-2xl">
       <img src={perfume.image} alt={`${perfume.house} ${perfume.name}`} class="h-full w-full object-cover" />
-      {
-        !perfume.available && (
-          <span class="absolute left-4 top-4 rounded-full bg-[#c43b3b] px-3 py-1 font-micro text-[11px] font-semibold text-cream">
-            Agotado
-          </span>
-        )
-      }
+      <span data-agotado-page class:list={["absolute left-4 top-4 rounded-full bg-[#c43b3b] px-3 py-1 font-micro text-[11px] font-semibold text-cream", perfume.available && "hidden"]}>
+        Agotado
+      </span>
+      <span data-promo-badge class="absolute left-4 top-4 hidden rounded-full bg-gold px-3 py-1 font-micro text-[11px] font-semibold text-goldink">Oferta</span>
+      <span data-low-badge class="absolute right-4 bottom-4 hidden items-center gap-1.5 rounded-full bg-[#c43b3b] px-3 py-1 font-micro text-[11px] font-semibold text-cream">
+        <span class="h-1.5 w-1.5 rounded-full bg-cream"></span>Quedan pocos
+      </span>
     </div>
 
     <div class="px-5 pt-5 md:sticky md:top-28 md:px-0 md:pt-6">
@@ -70,10 +71,21 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
       <p class="mt-3 font-micro text-[11px] font-semibold tracking-[0.14em] text-amber">{perfume.house.toUpperCase()}</p>
       <h1 class="font-poster text-4xl text-cream md:text-[56px] md:leading-[0.95]">{perfume.name}</h1>
       <p class="mt-2 font-app text-[15px] text-mist">{perfume.smell}</p>
+      <div data-promo-line class="mt-4 hidden overflow-hidden rounded-xl border border-gold/40 bg-[#1a1607]">
+        <div class="flex items-center justify-between gap-4 px-4 py-3">
+          <div class="min-w-0">
+            <p data-promo-kicker class="font-micro text-[10px] font-semibold tracking-[0.18em] text-[#c9a24a]">OFERTA</p>
+            <p data-promo-title class="mt-0.5 truncate font-poster text-[18px] leading-tight text-gold"></p>
+          </div>
+          <div data-promo-clock class="shrink-0 text-right">
+            <p data-promo-clock-label class="font-micro text-[10px] font-semibold tracking-[0.18em] text-[#c9a24a]">TERMINA EN</p>
+            <p data-promo-countdown class="mt-0.5 font-poster text-[18px] leading-tight tabular-nums text-cream"></p>
+          </div>
+        </div>
+        <div class="h-1 bg-gold/15"><div data-promo-bar class="h-full bg-gold transition-[width] duration-700" style="width:0%"></div></div>
+      </div>
 
-      {
-        perfume.available ? (
-          <>
+      <div data-buy class:list={[!perfume.available && "hidden"]}>
             {measures.length > 0 && (
               <>
                 <p class="mt-5 font-app text-sm font-semibold text-cream">¿De cuánto?</p>
@@ -83,12 +95,13 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
                       type="button"
                       data-select-size={s.key}
                       class:list={[
-                        "flex min-w-[6.5rem] flex-1 flex-col items-center rounded-lg px-2 py-3.5",
+                        "relative flex min-w-[6.5rem] flex-1 flex-col items-center rounded-lg px-2 py-3.5",
                         s.key === start.key ? "bg-amber text-night" : "bg-lift text-cream",
                       ]}
                     >
                       <span class="font-micro text-xs font-semibold">{s.label}</span>
-                      <span class="font-poster text-base">{money(s.price)}</span>
+                      <span data-price class="font-poster text-base">{money(s.price)}</span>
+                      <span data-was class="hidden font-app text-[11px] line-through opacity-60"></span>
                     </button>
                   ))}
                 </div>
@@ -99,7 +112,7 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
                 type="button"
                 data-select-size={bottle.key}
                 class:list={[
-                  "mt-5 flex w-full items-center justify-between rounded-lg px-3.5 py-3.5 text-left",
+                  "relative mt-5 flex w-full items-center justify-between rounded-lg px-3.5 py-3.5 text-left",
                   start.key === bottle.key ? "bg-amber text-night" : "bg-lift text-cream",
                 ]}
               >
@@ -107,7 +120,10 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
                   <span class="block font-app text-sm font-semibold">Frasco completo</span>
                   <span class="block font-app text-xs opacity-70">{bottle.hint || "Si ya lo conoces."}</span>
                 </span>
-                <span class="font-poster text-xl">{money(bottle.price)}</span>
+                <span class="text-right">
+                  <span data-price class="block font-poster text-xl">{money(bottle.price)}</span>
+                  <span data-was class="hidden font-app text-[11px] line-through opacity-60"></span>
+                </span>
               </button>
             )}
             <button
@@ -117,10 +133,10 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
             >
               Sumar {start.label} · {money(start.price)}
             </button>
+            <p data-save-line class="mt-2 hidden text-center font-app text-[12px] text-mist"></p>
             <p class="mt-2 text-center font-app text-[12px] text-mist">{store.shippingNote}</p>
-          </>
-        ) : (
-          <div class="mt-6 rounded-lg bg-lift px-4 py-4">
+      </div>
+          <div data-soldout-box class:list={["mt-6 rounded-lg bg-lift px-4 py-4", perfume.available && "hidden"]}>
             <p class="font-app text-sm text-mist">Hoy no hay. Escríbenos y te avisamos cuando vuelva.</p>
             <a
               href={`https://wa.me/${store.whatsapp}?text=${encodeURIComponent(`Hola, ¿cuándo vuelve ${perfume.name}?`)}`}
@@ -129,8 +145,6 @@ const tags = [genderLabel[perfume.gender], worldLabel[perfume.world], perfume.mo
               Preguntar por WhatsApp
             </a>
           </div>
-        )
-      }
     </div>
 
     </div>
